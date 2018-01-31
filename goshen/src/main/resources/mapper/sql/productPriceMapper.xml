@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hk.gs.product.mapper.ProductPriceMapper">
+
+	<select id="getProductPriceUploadInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT cust_no
+			  , prod_no
+			  , prod_seq
+			  , (prod_seq + 1) next_prod_seq
+		  FROM product_price
+		 WHERE cust_no = (SELECT cust_no FROM customer WHERE cust_nm = #{B})
+		   AND prod_no = (SELECT prod_no FROM product WHERE prod_nm = #{C})
+		   AND end_dt = '99991231'
+	</select>
+	
+	<update id="setProductPriceEndDt" parameterType="hashmap">	
+		UPDATE product_price
+		   SET end_dt = DATE_FORMAT(DATE(#{A}-1),'%Y%m%d')
+		 WHERE cust_no = #{cust_no}
+		   AND prod_no = #{prod_no}
+		   AND prod_seq = #{prod_seq}
+	</update>
+	
+    <insert id="setProductPriceForExcelUpload" parameterType="hashmap">
+		INSERT INTO product_price (start_dt
+									, cust_no
+									, prod_no
+									, prod_seq
+									, prod_price
+									, unit_price
+									, unit_price_yn
+									, end_dt
+									) 
+				VALUES
+						(#{A}
+						, (SELECT cust_no FROM customer WHERE cust_nm = #{B})
+						, (SELECT prod_no FROM product WHERE prod_nm = #{C})
+						, #{next_prod_seq}
+						, #{D}
+						, #{E}
+						, #{F}
+						, '99991231'
+						)
+    </insert>
+    
+    <insert id="setProductPrice" parameterType="hashmap">
+		INSERT INTO product_price (price_dt
+									, cust_no
+									, prod_no
+									, prod_price
+									, unit_price
+									, unit_price_yn
+									) 
+				VALUES
+				<foreach collection="priceList" item="item" separator=",">
+						(#{item.A}
+						, (SELECT cust_no FROM customer WHERE cust_nm = #{item.B})
+						, (SELECT prod_no FROM product WHERE prod_nm = #{item.C})
+						, #{item.D}
+						, #{item.E}
+						, #{item.F}
+						)
+				</foreach>
+    </insert>
+    
+    <select id="getProductPriceList" parameterType="hashmap" resultType="hashmap">
+			 SELECT a.cust_no
+					, b.cust_nm
+					, a.prod_no
+					, c.prod_nm
+					, a.prod_seq
+					, a.start_dt
+					, a.end_dt
+					, a.prod_price
+					, a.unit_price
+					, a.unit_price_yn
+			  FROM product_price a JOIN customer b
+			                         ON a.cust_no = b.cust_no
+			  					   JOIN product c
+			  						 ON a.prod_no = c.prod_no
+			 WHERE 1=1			   
+		 <if test="srch_dt != null and srch_dt != ''">
+		   	   AND DATE_FORMAT(DATE(#{srch_dt}),'%Y%m%d') BETWEEN a.start_dt AND a.end_dt
+		 </if>
+		 <if test="cust_no != null and cust_no != ''">
+		   	   AND a.cust_no = #{cust_no}
+		 </if>
+		 <if test="prod_no != null and prod_no != ''">
+		  	   AND a.prod_no = #{prod_no}
+		 </if>
+    </select>
+    
+    <delete id="setDelProductPrice" parameterType="hashmap">
+		DELETE FROM product_price 
+		 WHERE cust_no = #{cust_no}
+		   AND prod_no = #{prod_no}
+		   AND prod_seq = #{prod_seq}
+    </delete>
+    
+    <update id="setUpdProductPriceEndDtRollBack" parameterType="hashmap">	
+		UPDATE product_price
+		   SET end_dt = '99991231'
+		 WHERE cust_no = #{cust_no}
+		   AND prod_no = #{prod_no}
+		   AND prod_seq = ( SELECT MAX(prod_seq)
+						      FROM product_price
+							 WHERE cust_no = #{cust_no}
+		   				       AND prod_no = #{prod_no}
+						  )
+	</update>
+	
+	<update id="setUpdProductPriceInfo" parameterType="hashmap">	
+		UPDATE product_price
+		   SET start_dt = DATE_FORMAT(DATE(#{start_dt}),'%Y%m%d')
+		   	  , end_dt = DATE_FORMAT(DATE(#{end_dt}),'%Y%m%d')
+		   	  , prod_price = #{prod_price}
+		   	  , unit_price = #{unit_price}
+		   	  , unit = #{unit}
+		   	  , unit_price_yn = #{unit_price_yn}
+		 WHERE cust_no = #{cust_no}
+		   AND prod_no = #{prod_no}
+		   AND prod_seq = #{prod_seq}
+	</update>
+</mapper>

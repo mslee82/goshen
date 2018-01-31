@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hk.gs.main.mapper.HomeMapper">
+
+    <select id="customerSalesTop5" parameterType="hashmap" resultType="hashmap">
+		SELECT cust_nm name
+			  , total_price value
+		  FROM(
+				SELECT cust_nm
+					  , SUM(total_price) total_price
+				  FROM(
+						SELECT c.cust_nm
+						 		, CASE WHEN a.unit_price > 0 THEN (a.sell_quan * a.unit_price)
+								   	 ELSE (a.sell_quan * a.prod_price)
+						    		END total_price 		 		
+						  FROM sell a JOIN customer c
+										 	 ON a.cust_no = c.cust_no
+				     	 WHERE a.sell_dt = '20171205' /*DATE_FORMAT(SYSDATE(), '%Y%m%d')*/  
+				     	 UNION 
+				     	SELECT c.cust_nm
+							 	, CASE WHEN a.unit_price > 0 THEN (a.sell_quan * a.unit_price) * -1
+									   ELSE (a.sell_quan * a.prod_price) * -1
+							       END total_price 		 		
+					       FROM sell a JOIN customer c
+										 ON a.cust_no = c.cust_no				
+								       JOIN sell_return f
+									     ON a.cust_no = f.cust_no
+									    AND a.sell_dt = f.sell_dt
+									    AND a.sell_seq = f.sell_seq	
+						  WHERE a.sell_dt = '20171205' /*DATE_FORMAT(SYSDATE(), '%Y%m%d')*/
+							) K
+					GROUP BY cust_nm
+			) K
+	 ORDER BY total_price DESC LIMIT 5
+    </select>
+
+</mapper>

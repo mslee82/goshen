@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hk.gs.customer.mapper.CustomerMapper">
+
+    <insert id="setInsCustomerForForm" parameterType="hashmap">
+    	<selectKey keyProperty="maxCustNo" resultType="integer" order="BEFORE">
+			SELECT IFNULL(MAX(cust_no), 0) + 1 
+			  FROM customer
+			 WHERE cust_no = #{cust_no}
+		</selectKey>
+		INSERT INTO customer ( cust_no
+							   , cust_nm
+							   , cust_al
+							   , cust_addr
+							   , cust_phone 
+							   , cust_mobile
+							   , cust_fax
+							   , owner_nm
+							   , staff_phone1
+							   , staff_phone2
+							   , staff_phone3
+							   , cust_typ
+							   , use_yn
+							   , receipt_lv
+							   , truck_no
+							   , mainstore_yn
+							   , mainstore_cust_no
+							   , branch_nm
+						) 
+				VALUES
+						(  #{maxCustNo}
+						   , #{cust_nm}
+						   , #{cust_al}
+						   , #{cust_addr}
+						   , #{cust_phone}
+						   , #{cust_mobile}
+						   , #{cust_fax}
+						   , #{owner_nm}
+						   , #{staff_phone1}
+						   , #{staff_phone2}
+						   , #{staff_phone3}
+						   , #{cust_typ}
+						   , #{use_yn}
+						   , #{receipt_lv}
+						   , #{truck_no}
+						   , #{mainstore_yn}
+						   , #{mainstore_cust_no}
+						   , #{branch_nm}
+						)
+    </insert>
+    
+    <update id="setUpdCustomerForForm" parameterType="hashmap">
+		UPDATE customer 
+		   SET cust_nm = #{cust_nm}
+			   , cust_al = #{cust_al}
+			   , cust_addr = #{cust_addr}
+			   , cust_phone = #{cust_phone} 
+			   , cust_mobile = #{cust_mobile}
+			   , cust_fax = #{cust_fax}
+			   , owner_nm = #{owner_nm}
+			   , staff_phone1 = #{staff_phone1}
+			   , staff_phone2 = #{staff_phone2}
+			   , staff_phone3 = #{staff_phone3}
+			   , cust_typ = #{cust_typ}
+			   , use_yn = #{use_yn}
+			   , receipt_lv = #{receipt_lv}
+			   , truck_no = #{truck_no}
+			   , mainstore_yn = #{mainstore_yn}
+			   , mainstore_cust_no = #{mainstore_cust_no}
+			   , branch_nm = #{branch_nm}		
+		 WHERE cust_no = #{cust_no}
+    </update>
+    
+    <select id="getCustomerList" parameterType="hashmap" resultType="hashmap">
+    	 SELECT cust_no
+			   , cust_nm
+			   , cust_al
+			   , cust_addr
+			   , cust_phone 
+			   , cust_mobile
+			   , cust_fax
+			   , owner_nm
+			   , staff_phone1
+			   , staff_phone2
+			   , staff_phone3
+			   , cust_typ
+			   , use_yn
+			   , receipt_lv
+			   , truck_no
+			   , mainstore_yn
+			   , mainstore_cust_no
+			   , branch_nm
+		  FROM customer
+    </select>
+    
+    <select id="getCustomerInfo" parameterType="hashmap" resultType="hashmap">
+		 SELECT cust_no
+			   , cust_nm
+			   , cust_al
+			   , cust_addr
+			   , cust_phone 
+			   , cust_mobile
+			   , cust_fax
+			   , owner_nm
+			   , staff_phone1
+			   , staff_phone2
+			   , staff_phone3
+			   , cust_typ
+			   , use_yn
+			   , receipt_lv
+			   , truck_no
+			   , mainstore_yn
+			   , mainstore_cust_no
+			   , branch_nm
+		  FROM customer
+		 WHERE cust_no = #{cust_no}
+    </select>
+
+</mapper>

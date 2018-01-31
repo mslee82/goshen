@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hk.gs.sell.mapper.SellMapper">
+    
+    <select id="getSellUploadExePrev" parameterType="hashmap" resultType="hashmap">
+		SELECT #{A} AS sell_dt
+				, #{B} AS cust_nm
+				, #{C} AS sell_seq
+				, #{D} AS prod_nm
+				, #{E} AS sell_quan
+				, #{F} AS unit_nm
+				, #{G} AS branch_nm
+				, IFNULL((SELECT 'Y' FROM product WHERE prod_nm = #{D}), 'N') new_yn
+				, (SELECT prod_price
+				     FROM product_price a JOIN customer b
+			                                ON a.cust_no = b.cust_no
+			  			 		   	      JOIN product c
+			  						        ON a.prod_no = c.prod_no
+			  	    WHERE b.cust_nm = #{B}
+			  	      AND c.prod_nm = #{D}
+			  	      AND a.end_dt = '99991231'
+			  	  ) prod_price
+			  	, (SELECT tax_yn FROM product WHERE prod_nm = #{D}) tax_yn
+		  FROM dual
+    </select>
+    
+    <insert id="setSellForExcelUpload" parameterType="hashmap">
+		INSERT INTO sell (sell_dt
+							, cust_no
+							, sell_seq
+							, prod_no
+							, sell_quan
+							, unit
+							, truck_no
+						) 
+				VALUES
+				<foreach collection="sellList" item="item" separator=",">
+						(#{item.sell_dt}
+						<choose>
+							<when test="item.branch_nm != null and item.branch_nm != ''">
+						   		, (SELECT cust_no FROM customer WHERE cust_nm = #{item.cust_nm} AND branch_nm = #{item.branch_nm})		  
+						 	</when>
+						 	<otherwise>
+								, (SELECT cust_no FROM customer WHERE cust_nm = #{item.cust_nm})
+						 	</otherwise>
+						</choose>
+							, #{item.sell_seq}
+							, (SELECT prod_no FROM product WHERE prod_nm = #{item.prod_nm})
+							, #{item.sell_quan}
+							, (SELECT unit FROM unit WHERE unit_nm = #{item.unit_nm} OR unit_al = #{item.unit_nm})
+						<choose>
+							<when test="item.branch_nm != null and item.branch_nm != ''">
+								, (SELECT truck_no FROM customer WHERE cust_nm = #{item.cust_nm} AND branch_nm = #{item.branch_nm})
+							</when>
+						 	<otherwise>
+						 		, (SELECT truck_no FROM customer WHERE cust_nm = #{item.cust_nm})
+						 	</otherwise>
+						</choose>
+						)
+				</foreach>
+    </insert>
+    
+    <insert id="setInsSellForForm" parameterType="hashmap">
+    	<selectKey keyProperty="maxSellSeq" resultType="integer" order="BEFORE">
+			SELECT IFNULL(MAX(seLl_seq), 0) + 1 
+			  FROM sell
+			 WHERE sell_dt = #{sell_dt}
+		   	   AND cust_no = #{cust_no}
+		</selectKey>
+		INSERT INTO sell (sell_dt
+							, cust_no
+							, sell_seq
+							, prod_no
+							, sell_quan
+							, unit
+							, truck_no
+							, prod_price
+						) 
+				VALUES
+						( DATE_FORMAT(#{sell_dt},'%Y%m%d')
+							, #{cust_no}
+							, #{maxSellSeq}
+							, #{prod_no}
+							, #{sell_quan}
+							, #{unit}
+							, #{truck_no}
+							, #{prod_price}
+						)
+    </insert>
+    
+    <update id="setUpdSellForForm" parameterType="hashmap">
+		UPDATE sell 
+		   SET prod_no = #{prod_no}
+			   , sell_quan = #{sell_quan}
+			   , unit = #{unit}	
+			   , truck_no = #{truck_no}			
+		 WHERE sell_dt = DATE_FORMAT(#{sell_dt},'%Y%m%d')
+		   AND cust_no = #{cust_no}
+		   AND sell_seq = #{sell_seq}
+    </update>
+    
+    <select id="getSellList" parameterType="hashmap" resultType="hashmap">
+    	 SELECT DATE_FORMAT(a.sell_dt, '%Y-%m-%d') sell_dt
+ 		 		, a.cust_no
+				, CASE WHEN c.branch_nm IS NULL THEN c.cust_nm
+					   ELSE CONCAT(c.cust_nm, '-', IFNULL(c.branch_nm,'')) 
+				   END cust_nm 
+				, a.sell_seq
+				, d.prod_nm
+				, a.sell_quan		/*판매수량*/
+				, f.return_quan		/*반품수량*/
+				, a.unit
+				, e.unit_nm
+				, a.unit_price
+				, d.tax_yn
+				, CASE WHEN d.tax_yn = 'N' THEN TRUNCATE(CASE WHEN a.unit_price > 0 THEN (a.sell_quan * a.unit_price) 
+															  ELSE (a.sell_quan * a.prod_price)
+														  END
+														 , 2)
+					   ELSE 0
+				   END tax_free /*면세*/
+				, CASE WHEN d.tax_yn = 'Y' THEN TRUNCATE(CASE WHEN a.unit_price > 0 THEN (a.sell_quan * a.unit_price) / 1.1
+															  ELSE (a.sell_quan * a.prod_price) / 1.1
+														  END
+														 , 2)
+					   ELSE 0 
+				   END supply /*공급가액*/
+				, CASE WHEN d.tax_yn = 'Y' THEN TRUNCATE((CASE WHEN a.unit_price > 0 THEN (a.sell_quan * a.unit_price) / 1.1
+															   ELSE (a.sell_quan * a.prod_price) / 1.1
+														   END
+														  ) /10
+														  , 2)
+					   ELSE 0
+				   END tax /*부가세*/
+				, CASE WHEN a.unit_price > 0 THEN a.sell_quan * a.unit_price
+					   ELSE a.sell_quan * a.prod_price				 		
+			       END total_price /*계*/
+		  FROM sell a JOIN customer c
+						ON a.cust_no = c.cust_no
+					  LEFT JOIN product d
+						 	 ON a.prod_no = d.prod_no
+					  LEFT JOIN unit e
+						     ON a.unit = e.unit
+					  LEFT JOIN sell_return f
+					         ON a.sell_dt = f.sell_dt
+   				        	AND a.cust_no = f.cust_no
+					        AND a.sell_seq = f.sell_seq
+		 WHERE 1=1
+		 <if test="sell_dt != null and sell_dt != ''">
+		   AND a.sell_dt = DATE_FORMAT(#{sell_dt},'%Y%m%d')		  
+		 </if>
+		 <if test="cust_no != null and cust_no != ''">
+		   AND a.cust_no = #{cust_no}
+		 </if>
+		 <if test="prod_no != null and prod_no != ''">
+		   AND a.prod_no = #{prod_no}
+		 </if>
+	  ORDER BY a.sell_dt, c.cust_nm, a.sell_seq
+    </select>
+    
+    <select id="getSellInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT DATE_FORMAT(sell_dt,'%Y-%m-%d') AS sell_dt	
+			   , cust_no
+			   , sell_seq
+			   , prod_no
+			   , unit
+			   , sell_quan 
+			   , truck_no
+		  FROM sell
+		 WHERE sell_dt = DATE_FORMAT(#{sell_dt},'%Y%m%d')	
+		   AND cust_no = #{cust_no}
+		   AND sell_seq = #{sell_seq}
+    </select>
+
+    <select id="getProductInfo" parameterType="hashmap" resultType="int">
+		SELECT COUNT(*) cnt
+		  FROM product
+		 WHERE prod_nm = #{prod_nm}
+    </select>
+    
+	<insert id="setProductForList" parameterType="hashmap">
+		<selectKey keyProperty="maxProdNo" resultType="integer" order="BEFORE">
+			SELECT IFNULL(MAX(prod_no), 0) + 1 
+			  FROM product
+		</selectKey>
+		INSERT INTO product (prod_no
+							, prod_nm
+							, prod_typ
+							, tax_yn
+							, use_yn
+						) 
+				VALUES
+						(  #{maxProdNo}
+							, #{prod_nm}
+							, #{prod_typ}
+							, #{tax_yn}
+							, #{use_yn}
+						)
+    </insert>
+    
+    <select id="getProductPriceInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT cust_no
+			   , prod_no
+			   , prod_price
+			   , prod_seq
+			   , prod_seq + 1 AS next_prod_seq
+		  FROM product_price
+		 WHERE cust_no = (SELECT cust_no FROM customer WHERE cust_nm = #{cust_nm})
+		   AND prod_no = (SELECT prod_no FROM product WHERE prod_nm = #{prod_nm})
+		   AND end_dt = '99991231'
+	</select>
+	
+	<update id="setProductPriceEndDt" parameterType="hashmap">	
+		UPDATE product_price
+		   SET end_dt = DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -1 DAY),'%Y%m%d')
+		 WHERE cust_no = #{cust_no}
+		   AND prod_no = #{prod_no}
+		   AND prod_seq = #{prod_seq}
+	</update>
+	
+	<insert id="setProductPrice" parameterType="hashmap">
+		INSERT INTO product_price (start_dt
+									, cust_no
+									, prod_no
+									, prod_seq
+									, prod_price
+									, end_dt
+									) 
+				VALUES
+						( DATE_FORMAT(NOW(),'%Y%m%d')
+						, (SELECT cust_no FROM customer WHERE cust_nm = #{cust_nm})
+						, (SELECT prod_no FROM product WHERE prod_nm = #{prod_nm})
+						, #{next_prod_seq}
+						, #{prod_price}
+						, '99991231'
+						)
+    </insert>
+    
+</mapper>

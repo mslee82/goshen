@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hk.gs.common.mapper.ComMapper">
+
+    <select id="getCustNmList" parameterType="hashmap" resultType="hashmap">
+		SELECT cust_no
+			   , cust_nm 
+		  FROM customer
+    </select>
+        
+    <select id="getProdNmList" parameterType="hashmap" resultType="hashmap">
+		SELECT prod_no
+			   , prod_nm 
+		  FROM product
+    </select>
+    
+    <select id="getUnitNmList" parameterType="hashmap" resultType="hashmap">
+		SELECT unit
+			   , unit_nm 
+		  FROM unit
+    </select>
+    
+    <select id="getTruckNmList" parameterType="hashmap" resultType="hashmap">
+		SELECT truck_no
+			   , truck_nm 
+		  FROM delivery_info
+    </select>
+</mapper>

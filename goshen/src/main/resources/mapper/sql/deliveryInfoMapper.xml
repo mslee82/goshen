@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hk.gs.sell.mapper.DeliveryInfoMapper">
+
+	<select id="getDeliveryListForDrivers" parameterType="hashmap" resultType="hashmap">
+	SELECT prod_nm
+			, GROUP_CONCAT(concat_txt) delivery_detail
+	  FROM (
+			SELECT c.prod_nm
+					, d.cust_nm
+					, b.sell_quan
+					, e.unit_nm
+					, CONCAT(d.cust_nm, b.sell_quan, e.unit_nm) AS concat_txt
+			  FROM delivery_info a JOIN sell b 
+			  						 ON a.truck_no = b.truck_no
+			  				  	   JOIN product c
+						  			 ON b.prod_no = c.prod_no
+						  		   JOIN customer d
+						  			 ON b.cust_no = d.cust_no
+						  		   JOIN unit e
+						  			 ON b.unit = e.unit
+			 WHERE a.truck_no = #{truck_no}
+			   AND b.sell_dt = DATE_FORMAT(#{sell_dt},'%Y%m%d')	
+			) a
+	  GROUP BY prod_nm
+	</select>	
+	
+    <select id="getTruckInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT a.truck_no
+				, a.truck_nm
+				, DATE_FORMAT(SYSDATE()	, '%Y년 %m월 %d일') today				
+		  FROM delivery_info a
+		 WHERE a.truck_no = #{truck_no}
+    </select>
+</mapper>

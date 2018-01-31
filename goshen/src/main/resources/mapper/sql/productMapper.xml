@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hk.gs.product.mapper.ProductMapper">
+    
+    <insert id="setInsProductForForm" parameterType="hashmap">
+    	<selectKey keyProperty="maxProdNo" resultType="integer" order="BEFORE">
+			SELECT IFNULL(MAX(prod_no), 0) + 1 
+			  FROM product
+		</selectKey>
+		INSERT INTO product (prod_no
+							, prod_nm
+							, prod_typ
+							, tax_yn
+							, use_yn
+						) 
+				VALUES
+						(  #{maxProdNo}
+							, #{prod_nm}
+							, #{prod_typ}
+							, #{tax_yn}
+							, #{use_yn}
+						)
+    </insert>
+    
+    <update id="setUpdProductForForm" parameterType="hashmap">
+		UPDATE product 
+		   SET prod_nm = #{prod_nm}
+			   , prod_typ = #{prod_typ}
+			   , tax_yn = #{tax_yn}	
+			   , use_yn = #{use_yn}			
+		 WHERE prod_no = #{prod_no}
+    </update>
+    
+    <select id="getProductInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT prod_no	
+			   , prod_nm
+			   , prod_typ
+			   , tax_yn
+			   , use_yn
+		  FROM product
+		 WHERE prod_no = #{prod_no}
+    </select>
+
+    <select id="getProductList" parameterType="hashmap" resultType="hashmap">
+		SELECT prod_no	
+			   , prod_nm
+			   , prod_typ
+			   , tax_yn
+			   , use_yn
+		  FROM product
+    </select>
+</mapper>

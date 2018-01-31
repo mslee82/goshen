@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hk.gs.sell.mapper.SellReturnMapper">
+	<insert id="setSellReturn" parameterType="hashmap">
+		INSERT INTO sell_return (return_dt
+									, return_seq
+									, sell_dt
+									, cust_no
+									, sell_seq
+									, return_quan									
+									) 
+				VALUES
+						( DATE_FORMAT(CURDATE(), '%Y%m%d')
+						, IFNULL((SELECT MAX(return_seq) + 1 FROM sell_return AS T1 WHERE return_dt = DATE_FORMAT(CURDATE(), '%Y%m%d')), 1)
+						, REPLACE(#{sell_dt}, '-', '')
+						, #{cust_no}
+						, #{sell_seq}
+						, #{return_quan}
+						)
+    </insert>
+    
+    <select id="getSellReturnList" parameterType="hashmap" resultType="hashmap">
+    	 SELECT DATE_FORMAT(a.sell_dt, '%Y-%m-%d') sell_dt
+ 		 		,a.cust_no
+				, c.cust_nm
+				, a.sell_seq
+				, d.prod_nm
+				, a.sell_quan		/*판매수량*/
+				, f.return_quan		/*반품수량*/
+				, a.unit
+				, e.unit_nm
+				, a.unit_price
+				, d.tax_yn
+				, CASE WHEN d.tax_yn = 'N' THEN TRUNCATE(CASE WHEN a.unit_price > 0 THEN (a.sell_quan * a.unit_price) 
+															  ELSE (a.sell_quan * a.prod_price)
+														  END
+														 , 2)
+					   ELSE 0
+				   END tax_free /*면세*/
+				, CASE WHEN d.tax_yn = 'Y' THEN TRUNCATE(CASE WHEN a.unit_price > 0 THEN (a.sell_quan * a.unit_price) / 1.1
+															  ELSE (a.sell_quan * a.prod_price) / 1.1
+														  END
+														 , 2)
+					   ELSE 0 
+				   END supply /*공급가액*/
+				, CASE WHEN d.tax_yn = 'Y' THEN TRUNCATE((CASE WHEN a.unit_price > 0 THEN (a.sell_quan * a.unit_price) / 1.1
+															   ELSE (a.sell_quan * a.prod_price) / 1.1
+														   END
+														  ) /10
+														  , 2)
+					   ELSE 0
+				   END tax /*부가세*/
+				, CASE WHEN a.unit_price > 0 THEN a.sell_quan * a.unit_price
+					   ELSE a.sell_quan * a.prod_price				 		
+			       END total_price /*계*/
+		  FROM sell a LEFT JOIN customer c
+						 	 ON a.cust_no = c.cust_no
+					  LEFT JOIN product d
+						 	 ON a.prod_no = d.prod_no
+					  LEFT JOIN unit e
+						     ON a.unit = e.unit
+					       JOIN sell_return f
+					         ON a.sell_dt = f.sell_dt
+   				        	AND a.cust_no = f.cust_no
+					        AND a.sell_seq = f.sell_seq
+		 WHERE 1=1
+		 <if test="sell_dt != null and sell_dt != ''">
+		   AND a.sell_dt = DATE_FORMAT(#{sell_dt},'%Y%m%d')		  
+		 </if>
+		 <if test="cust_no != null and cust_no != ''">
+		   AND a.cust_no = #{cust_no}
+		 </if>
+		 <if test="prod_no != null and prod_no != ''">
+		   AND a.prod_no = #{prod_no}
+		 </if>
+    </select>
+    
+    <delete id="setDelSellReturn" parameterType="hashmap">
+		DELETE FROM sell_return 
+		 WHERE return_dt = #{return_dt}
+		   AND return_seq = #{return_seq}
+    </delete>
+</mapper>
