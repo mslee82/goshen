@@ -31,7 +31,7 @@ public class CommUtil {
 			lists = objMapper.readValue(mapData,  new TypeReference<List<Map<String, Object>>>() {});			
 		} catch (Exception e) {
 			e.printStackTrace();
-		}
+		}   
 		return lists;
 	}
 
