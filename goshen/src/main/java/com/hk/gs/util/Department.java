@@ -13,7 +13,7 @@ public class Department {
     private Employee chief = new Employee();
     private List<Employee> staff = new ArrayList<Employee>();
     private String link;
-    private byte[] image;
+    private byte[] image; 
 
 
     public Department() {
