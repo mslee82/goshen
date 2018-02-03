@@ -27,8 +27,6 @@
 									, prod_no
 									, prod_seq
 									, prod_price
-									, unit_price
-									, unit_price_yn
 									, end_dt
 									) 
 				VALUES
@@ -37,30 +35,8 @@
 						, (SELECT prod_no FROM product WHERE prod_nm = #{C})
 						, #{next_prod_seq}
 						, #{D}
-						, #{E}
-						, #{F}
 						, '99991231'
 						)
-    </insert>
-    
-    <insert id="setProductPrice" parameterType="hashmap">
-		INSERT INTO product_price (price_dt
-									, cust_no
-									, prod_no
-									, prod_price
-									, unit_price
-									, unit_price_yn
-									) 
-				VALUES
-				<foreach collection="priceList" item="item" separator=",">
-						(#{item.A}
-						, (SELECT cust_no FROM customer WHERE cust_nm = #{item.B})
-						, (SELECT prod_no FROM product WHERE prod_nm = #{item.C})
-						, #{item.D}
-						, #{item.E}
-						, #{item.F}
-						)
-				</foreach>
     </insert>
     
     <select id="getProductPriceList" parameterType="hashmap" resultType="hashmap">
@@ -72,8 +48,6 @@
 					, a.start_dt
 					, a.end_dt
 					, a.prod_price
-					, a.unit_price
-					, a.unit_price_yn
 			  FROM product_price a JOIN customer b
 			                         ON a.cust_no = b.cust_no
 			  					   JOIN product c
@@ -114,9 +88,7 @@
 		   SET start_dt = DATE_FORMAT(DATE(#{start_dt}),'%Y%m%d')
 		   	  , end_dt = DATE_FORMAT(DATE(#{end_dt}),'%Y%m%d')
 		   	  , prod_price = #{prod_price}
-		   	  , unit_price = #{unit_price}
 		   	  , unit = #{unit}
-		   	  , unit_price_yn = #{unit_price_yn}
 		 WHERE cust_no = #{cust_no}
 		   AND prod_no = #{prod_no}
 		   AND prod_seq = #{prod_seq}

@@ -82,5 +82,19 @@ public class SellReturnController {
 		mav.addObject("result", rtnMap); 
 		return mav;
 	}
-	
+
+	/**
+	 * 판매 반품 수량 수정
+	 * @since 2018.02.01
+	 * @author 이명선
+	 * @throws Exception 
+	 */
+	@RequestMapping(value = "/sellReturn/setModSellReturn.do")
+	public ModelAndView setModSellReturn(@RequestParam Map<String, Object> pMap) throws Exception {
+		ModelAndView mav = new ModelAndView("jsonView");
+		Map<String, Object> rtnMap = sellReturnService.setUpdSellReturn(pMap);
+		
+		mav.addObject("result", rtnMap); 
+		return mav;
+	}
 }

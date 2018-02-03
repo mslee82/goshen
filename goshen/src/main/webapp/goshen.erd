@@ -399,17 +399,6 @@
                             <defaultValue></defaultValue>
                           </net.java.amateras.db.visual.model.ColumnModel>
                           <net.java.amateras.db.visual.model.ColumnModel>
-                            <columnName>UNIT_PRICE</columnName>
-                            <logicalName>단위가격</logicalName>
-                            <columnType class="net.java.amateras.db.dialect.ColumnType" reference="../../net.java.amateras.db.visual.model.ColumnModel[6]/columnType"/>
-                            <size>10</size>
-                            <notNull>false</notNull>
-                            <primaryKey>false</primaryKey>
-                            <description>단위가격 10g당 100원 이라면 UNIT 10, UNIT_PRICE 100</description>
-                            <autoIncrement>false</autoIncrement>
-                            <defaultValue></defaultValue>
-                          </net.java.amateras.db.visual.model.ColumnModel>
-                          <net.java.amateras.db.visual.model.ColumnModel>
                             <columnName>UNIT</columnName>
                             <logicalName>단위</logicalName>
                             <columnType class="net.java.amateras.db.dialect.ColumnType">
@@ -422,22 +411,6 @@
                             <notNull>false</notNull>
                             <primaryKey>false</primaryKey>
                             <description>단위</description>
-                            <autoIncrement>false</autoIncrement>
-                            <defaultValue></defaultValue>
-                          </net.java.amateras.db.visual.model.ColumnModel>
-                          <net.java.amateras.db.visual.model.ColumnModel>
-                            <columnName>UNIT_PRICE_YN</columnName>
-                            <logicalName>단위가격사용여부</logicalName>
-                            <columnType class="net.java.amateras.db.dialect.ColumnType">
-                              <name>VARCHAR</name>
-                              <logicalName>String</logicalName>
-                              <supportSize>true</supportSize>
-                              <type>12</type>
-                            </columnType>
-                            <size>1</size>
-                            <notNull>false</notNull>
-                            <primaryKey>false</primaryKey>
-                            <description>야채의 경우 단위 가격을 사용할지 상품가격을 사용할지 결정 단위가격:Y</description>
                             <autoIncrement>false</autoIncrement>
                             <defaultValue></defaultValue>
                           </net.java.amateras.db.visual.model.ColumnModel>
@@ -1564,33 +1537,6 @@
                 <notNull>false</notNull>
                 <primaryKey>false</primaryKey>
                 <description>업로드 혹은 등록시에 자동으로 저장하고 배차를 변경할때만 수정기능으로 변경함.</description>
-                <autoIncrement>false</autoIncrement>
-                <defaultValue></defaultValue>
-              </net.java.amateras.db.visual.model.ColumnModel>
-              <net.java.amateras.db.visual.model.ColumnModel>
-                <columnName>PROD_PRICE</columnName>
-                <logicalName>상품가격</logicalName>
-                <columnType class="net.java.amateras.db.dialect.ColumnType">
-                  <name>INT</name>
-                  <logicalName>Integer</logicalName>
-                  <supportSize>false</supportSize>
-                  <type>4</type>
-                </columnType>
-                <size>10</size>
-                <notNull>false</notNull>
-                <primaryKey>false</primaryKey>
-                <description>상품가격</description>
-                <autoIncrement>false</autoIncrement>
-                <defaultValue></defaultValue>
-              </net.java.amateras.db.visual.model.ColumnModel>
-              <net.java.amateras.db.visual.model.ColumnModel>
-                <columnName>UNIT_PRICE</columnName>
-                <logicalName>단위가격</logicalName>
-                <columnType class="net.java.amateras.db.dialect.ColumnType" reference="../../net.java.amateras.db.visual.model.ColumnModel[8]/columnType"/>
-                <size>10</size>
-                <notNull>false</notNull>
-                <primaryKey>false</primaryKey>
-                <description>단위가격</description>
                 <autoIncrement>false</autoIncrement>
                 <defaultValue></defaultValue>
               </net.java.amateras.db.visual.model.ColumnModel>

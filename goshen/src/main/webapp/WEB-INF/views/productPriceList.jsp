@@ -107,8 +107,6 @@
 				dataList += '<td name="listStartDt">' 	+ gfn_nvl(val.start_dt) + '</td>';			//시작일자
 				dataList += '<td name="listEndDt">' 	+ gfn_nvl(val.end_dt) 	+ '</td>';			//종료일자
 				dataList += '<td name="listProdPrice">' + gfn_nvl(val.prod_price) + '</td>';		//단가
-				dataList += '<td name="listUnitPrice">' + gfn_nvl(val.unit_price) + '</td>';		//단위단가
-				dataList += '<td name="listUnitPriceYn">' + gfn_nvl(val.unit_price_yn) + '</td>';	//단위단가사용
 				dataList += '<td name="listUnit">' 		+ gfn_nvl(val.unit) 	+ '</td>';			//단위
 				dataList += '<td name="listCustNo" style="display:none">' 	+ gfn_nvl(val.cust_no) + '</td>';	//고객번호
 				dataList += '<td name="listProdNo" style="display:none">' 	+ gfn_nvl(val.prod_no) + '</td>';	//상품번호
@@ -214,8 +212,6 @@
 						<th width="10%">시작일자</th>
 						<th width="10%">종료일자</th>
 						<th width="10%">단가</th>
-						<th width="10%">단위단가</th>
-						<th width="10%">단위단가사용</th>
 						<th width="10%">단위</th>
 						<th width="5%" style="display:none">고객번호</th>
 						<th width="5%" style="display:none">상품번호</th>

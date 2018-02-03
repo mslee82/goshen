@@ -37,7 +37,7 @@
 			
 			//반품수량수정 버튼 이벤트
 			$("#btnReturnMod").on("click", function(){
-				fnSetSellReturn();
+				fnSetModSellReturn();
 			});
 			
 			//그리드 선택
@@ -100,7 +100,7 @@
 			$.each(result.list, function(i, val){
 				dataList  = '<tr class="list_row">';
 				dataList += '<td><input type="checkbox" name="chkList"/></td>';
-				dataList += '<td name="listReturnSeq">' + gfn_nvl(val.return_seq) 	+ '</td>';	//일련번호
+				dataList += '<td name="listSellSeq">' + gfn_nvl(val.sell_seq) 	+ '</td>';		//일련번호
 				dataList += '<td name="listReturnDt">' + gfn_nvl(val.return_dt) 	+ '</td>';	//반품일자
 				dataList += '<td name="listSellDt">' + gfn_nvl(val.sell_dt) 	+ '</td>';		//판매일자
 				dataList += '<td>' + gfn_nvl(val.cust_nm) 	+ '</td>';							//고객명
@@ -112,7 +112,7 @@
 				dataList += '<td>' + gfn_nvl(val.tax) 		+ '</td>';		//부가세
 				dataList += '<td>' + gfn_nvl(val.total_price) + '</td>';	//계
 				dataList += '<td name="listSellCustNo" style="display:none">' + gfn_nvl(val.cust_no) + '</td>';	//고객번호
-				
+				dataList += '<td name="listReturnSeq" style="display:none">' + gfn_nvl(val.return_seq) 	+ '</td>';	//일련번호
 				dataList += '</tr>';
 				
 				$("#board_list tbody").append(dataList);
@@ -158,6 +158,49 @@
 			}
 			fnSellReturnList();
 		}
+		
+		/**
+		 * 반품수량 수정 
+		 */
+		function fnSetModSellReturn() {
+			var arrChecked = [];
+			var vJsonParam = "";
+			var chkCnt = 0;
+			
+			//선택된 반품 항목을 array에 담아 전달
+			$(".block_list table tbody .active").each(function (i) {			
+				vJsonParam = { "sell_dt" : this.children.listSellDt.textContent
+						  		, "cust_no" : this.children.listSellCustNo.textContent
+						  		, "sell_seq" : this.children.listSellSeq.textContent
+						  		, "return_quan" : this.children.listSellQuan.children.returnQuan.value
+				}				
+				arrChecked.push(vJsonParam);
+				chkCnt++;
+			});
+			
+			//전달된 파라미터는 CommUtil.json2List 기능을 통해 List Object로 전환해서 사용한다. 
+			var vJsonString = arrChecked;
+			
+			commonAjax.clearParam(); 
+			commonAjax.setUrl("<c:url value='/sellReturn/setModSellReturn.do' />");
+			commonAjax.setDataType("json");
+			commonAjax.setJsonParam(vJsonString);
+			commonAjax.setCallback("fnSetSellReturnCallback");
+			commonAjax.ajax();	
+		}
+		
+		/**
+		 * 반품수량 수정 callback
+		 */
+		function fnSetSellReturnCallback(response) {
+			if(response.result.returnMsg == ""){			
+				alert(response.result.returnCnt + " 건 수량 수정이 완료 되었습니다.");
+			} else{
+				alert(response.result.returnMsg + " 확인이 필요합니다.");
+			}
+			fnSellReturnList();
+		}
+		
 	</script>
 </head>
 <body>
@@ -220,6 +263,7 @@
 						<th width="10%">부가세</th>
 						<th width="10%">계</th>
 						<th width="10%" style="display:none">고객번호</th>
+						<th width="10%" style="display:none">반품일련번호</th>
 					</tr>
 				</thead>
 				<tbody>

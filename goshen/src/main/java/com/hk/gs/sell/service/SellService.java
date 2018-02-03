@@ -197,9 +197,11 @@ public class SellService {
 	            	sellMapper.setProductPrice(paramMap);		//货肺款 窜啊 积己
             	} 
             } else {
-            	//绝促搁 货肺 积己
-            	paramMap.put("next_prod_seq", "1");
-            	sellMapper.setProductPrice(paramMap);
+            	if(!"".equals(sInputPrice)) {
+            		//绝促搁 货肺 积己
+            		paramMap.put("next_prod_seq", "1");
+            		sellMapper.setProductPrice(paramMap);
+            	}
             }
            
 		}

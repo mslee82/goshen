@@ -33,28 +33,47 @@
 		
 			//수정 버튼 이벤트
 			$("#btnMod").on("click", function(){
-				if(confirm("수정 하시겠습니까?")){
+				if(confirm("판매내역 수정 페이지로 이동합니다.\n진행 하시겠습니까?")){
 					fnSetModSellInfo();
 				}
 			});
+			
 			//삭제 버튼 이벤트
 			$("#btnDel").on("click", function(){
 				if(confirm("삭제 하시겠습니까?")){
-					fnSetSellReturn();
+					//fnSetSellReturn();
+					alert("아직 안됐슴돠!");
 				}
 			});
+			
 			//반품 버튼 이벤트
 			$("#btnReturn").on("click", function(){
 				if(confirm("반품 하시겠습니까?")){
 					fnSetSellReturn();
 				}
 			});
-			//판매가액 수정
+			
+			//반품 취소 버튼 이벤트
+			$("#btnReturnCancel").on("click", function(){
+				if(confirm("반품 취소 하시겠습니까?")){
+					fnSetSellReturn();
+				}
+			});
+			
+			//판매가 수정
 			$("#btnPriceMod").on("click", function(){
-				if(confirm("판매가액 수정 하시겠습니까?")){
+				if(confirm("판매가 수정 하시겠습니까?")){
 					fnSetSellPrice();
 				}
 			});
+			
+			//교환
+			$("#btnChange").on("click", function(){
+				if(confirm("교환 하시겠습니까?")){
+					alert("아직 안됐슴돠!");
+				}
+			});
+			
 			
 			//그리드 선택
 			$(document).on("click", "#board_list > tbody > tr > td", function(event){
@@ -122,11 +141,12 @@
 				dataList += '<td name="listProdNm">' + gfn_nvl(val.prod_nm) 	+ '</td>';		//상품
 				dataList += '<td name="listSellQuan">' + gfn_nvl(val.sell_quan) + '(<input name="returnQuan" class="return_unit" value="'+ gfn_nvl(val.return_quan) +'"/>)</td>';		//수량
 				dataList += '<td name="listUnitNm">' + gfn_nvl(val.unit_nm) 	+ '</td>';		//단위
-				dataList += '<td name="listTaxFree"><input name="taxFree" class="return_unit" value="' + gfn_nvl(val.tax_free) 	+ '"/></td>';		//면세
-				dataList += '<td name="listSupply"><input name="taxable" class="return_unit" value="' + gfn_nvl(val.supply) 		+ '"/></td>';	//과세
+				dataList += '<td name="listTaxFree"><input name="taxFree" class="price" value="' + gfn_nvl(val.tax_free) 	+ '"/></td>';	//면세
+				dataList += '<td name="listSupply"><input name="taxable" class="price" value="' + gfn_nvl(val.supply) 		+ '"/></td>';	//과세
 				dataList += '<td name="listTax">' 	 + gfn_nvl(val.tax) 		+ '</td>';		//부가세
 				dataList += '<td name="listTotalPrice">' + gfn_nvl(val.total_price) + '</td>';	//계
-				dataList += '<td name="listSellCustNo" style="display:none">' + gfn_nvl(val.cust_no) + '</td>';	//고객번호				
+				dataList += '<td name="listSellCustNo" style="display:none">' + gfn_nvl(val.cust_no) + '</td>';		//고객번호		
+				dataList += '<td name="listReturnSeq" style="display:none">' + gfn_nvl(val.return_seq) + '</td>';	//반품일련번호		
 				dataList += '</tr>';
 				
 				$("#board_list tbody").append(dataList);
@@ -177,7 +197,47 @@
 		}
 		
 		/**
-		 * 판매가액 수정
+		 * 반품 취소
+		 */
+		function fnCancelSellReturn() {
+			var arrChecked = [];
+			var vJsonParam = "";
+			var chkCnt = 0;
+			
+			//선택된 반품 항목을 array에 담아 전달
+			$(".block_list table tbody .active").each(function (i) {			
+				vJsonParam = { "return_dt" : this.children.listSellDt.textContent
+						  		, "return_quan" : this.children.listReturnSeq.textContent
+				}				
+				arrChecked.push(vJsonParam);
+				chkCnt++;
+			});
+			
+			//전달된 파라미터는 CommUtil.json2List 기능을 통해 List Object로 전환해서 사용한다. 
+			var vJsonString = arrChecked;
+			
+			commonAjax.clearParam(); 
+			commonAjax.setUrl("<c:url value='/sellReturn/setDelSellReturn.do' />");
+			commonAjax.setDataType("json");
+			commonAjax.setJsonParam(vJsonString);
+			commonAjax.setCallback("fnCancelSellReturnCallback");
+			commonAjax.ajax();	
+		}
+		
+		/**
+		 * 반품 취소 callback
+		 */
+		function fnCancelSellReturnCallback(response) {
+			if(response.result.returnMsg == ""){			
+				alert(response.result.returnCnt + " 건 반품 취소 완료 되었습니다.");
+			} else{
+				alert(response.result.returnMsg + " 확인이 필요합니다.");
+			}
+			fnSellList();
+		}
+		
+		/**
+		 * 판매가 수정
 		 */
 		function fnSetSellPrice() {
 			var arrChecked = [];
@@ -208,7 +268,7 @@
 		}
 		
 		/**
-		 * 판매가액 수정 callback
+		 * 판매가 수정 callback
 		 */
 		function fnSetSellPriceCallback(response) {
 			if(response.result.returnMsg == ""){			
@@ -220,7 +280,7 @@
 		}
 		
 		/**
-		 * 수정 
+		 * 판매 내용 수정 
 		 */
 		function fnSetModSellInfo() {			
 			var chkCnt = 0;
@@ -309,6 +369,7 @@
 						<th width="10%">부가세</th>
 						<th width="10%">계</th>
 						<th width="10%" style="display:none">고객번호</th>
+						<th width="10%" style="display:none">반품일련번호</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -318,9 +379,10 @@
 		</div>
 		<div class="list_btn_group" id="btnGroup">
 			<button class="btn_default" id="btnMod">판매 내용 수정</button>	
-			<button class="btn_default" id="btnDel">삭제</button>			
-			<button class="btn_default" id="btnPriceMod">판매가액 수정</button>
-			<button class="btn_default" id="btnReturn">반품</button>				
+			<button class="btn_default" id="btnDel">판매 내용 삭제</button>			
+			<button class="btn_default" id="btnPriceMod">판매가 수정</button>
+			<button class="btn_default" id="btnReturn">반품</button>
+			<button class="btn_default" id="btnReturnCancel">반품취소</button>				
 			<button class="btn_default" id="btnChange">교환</button>
 		</div>
 	</div>

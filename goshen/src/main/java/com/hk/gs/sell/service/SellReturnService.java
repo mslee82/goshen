@@ -96,7 +96,7 @@ public class SellReturnService {
     		map.put("return_dt", tempMap.get("return_dt"));
     		map.put("return_seq", tempMap.get("return_seq"));
     		
-    		iRst =  sellReturnMapper.setSellReturn(map);
+    		iRst =  sellReturnMapper.setDelSellReturn(map);
     		if(iRst >= 1){
     			iCnt++;
     		} else{
@@ -110,4 +110,43 @@ public class SellReturnService {
 		rtnMap.put("returnMsg", strBuff.toString());
     	return rtnMap;
     }
+	
+	/**
+	 * 판매 반품 수량 수정
+	 * @since 2018.02.01
+	 * @author 이명선
+	 * @throws Exception 
+	 */
+	public Map<String, Object> setUpdSellReturn(Map<String, Object> map) throws Exception {
+		List<Map<String, Object>> jsonData = CommUtil.json2List(String.valueOf(map.get("jsonData")));
+		Map<String, Object> rtnMap = new HashMap<String, Object>();
+		int iCnt = 0;
+		int iRst = 0;
+		StringBuffer strBuff = new StringBuffer();
+		Map<String, Object> tempMap;		
+		for (int i = 0; i < jsonData.size(); i++) {
+			tempMap = jsonData.get(i);
+			map.remove("return_dt");
+			map.remove("return_seq");
+			map.remove("return_quan");
+			
+			map.put("return_dt", tempMap.get("return_dt"));
+    		map.put("return_seq", tempMap.get("return_seq"));
+    		map.put("return_quan", tempMap.get("return_quan"));
+    		iRst =  sellReturnMapper.setUpdSellReturn(map);
+    		if(iRst >= 1){
+    			iCnt++;
+    		} else{
+    			if(strBuff.length() > 0){
+					strBuff.append(",");
+				}
+				strBuff.append(jsonData.get(i).get("return_seq"));
+    		}
+		}
+		
+		rtnMap.put("returnCnt", iCnt);
+		rtnMap.put("returnMsg", strBuff.toString());
+    	return rtnMap;
+    }
+	
 }

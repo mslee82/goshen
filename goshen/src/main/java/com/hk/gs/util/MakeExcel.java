@@ -187,39 +187,48 @@ public class MakeExcel {
             System.out.println("Creating area");
             
             //전체 템플릿 영역 지정  Template!A1:K15 -> 시트명!시작점:종료점
-            XlsArea xlsArea = new XlsArea("Template!A1:L17", transformer);
+            XlsArea xlsArea = new XlsArea("Template!A1:L18", transformer);
             
             //
-            XlsArea sheetArea = new XlsArea("Template!A2:L16", transformer);
+            XlsArea sheetArea = new XlsArea("Template!A2:L17", transformer);
             
             //multi sheet command 단순히 List를 표현하기 위해서라면 이것을 사용할 필요가 없음. 고센의 경우 월,일별로 시트를 모으므로 이것은 일자를 기준으로 반복함.
             //1,2 항목이 동적으로 면세분리면 두 개의 리스트가, 지점보유라면 두 배의 리스트가, 월누적이라면 앞부분을 포함한 누적일자 만큼이 그때는 이부분이 selldt쯤? 
             EachCommand sheetEachCommand = new EachCommand("sheetList", "sheetLists", sheetArea, new SimpleCellRefGenerator());
             
             //영수증 목록의 영역을 지정함. 
-            XlsArea employeeArea = new XlsArea("Template!A14:K14", transformer);
-            XlsArea ifArea = new XlsArea("Template!A18:K18", transformer);
-            IfCommand ifCommand = new IfCommand("employee.payment <= 2000",
+            XlsArea excelArea = new XlsArea("Template!A14:K14", transformer);
+            /* 
+            XlsArea ifArea = new XlsArea("Template!A14:K14", transformer);
+            IfCommand ifCommand = new IfCommand("receiptData.cust_no > 0",
                     ifArea,
                     new XlsArea("Template!A14:K14", transformer));
-            employeeArea.addCommand(new AreaRef("Template!A14:K14"), ifCommand);
+            excelArea.addCommand(new AreaRef("Template!A14:K14"), ifCommand);
+            */
             
             //영수증 목록 데이터셋을 지정
-            Command receiptEachCommand = new EachCommand("receiptData", "sheetList.receiptData", employeeArea);
+            Command receiptEachCommand = new EachCommand("receiptData", "sheetList.receiptData", excelArea);
             sheetArea.addCommand(new AreaRef("Template!A14:K14"), receiptEachCommand);
+            xlsArea.addCommand(new AreaRef("Template!A2:K17"), sheetEachCommand); //multi sheet command를 영역에 추가함.
             
-            
-            xlsArea.addCommand(new AreaRef("Template!A2:K16"), sheetEachCommand); //multi sheet command를 영역에 추가함.
-            
-
             //데이터셋은 여기에 putVar로 지정해서 사용
             Context context = new Context();
-            context.putVar("sheetLists", bean.get("sheetList"));		
-            context.putVar("dataList", bean.get("dataList"));
+            context.putVar("sheetLists", bean.get("sheetList"));	//시트명을 위한 작업. 일별, 지점별로 구분, 면세과세별
+            context.putVar("dataList", bean.get("dataList"));		//실제 영수증 내역
+            
+            //조회기간의 총 합계 시트
+            
+            //영수증하단의 일 합계 누적
             
             //저장되는 시트명과 시작점
-            xlsArea.applyAt(new CellRef("Sheet!A1"), context);
-            xlsArea.processFormulas();
+            xlsArea.applyAt(new CellRef("Template!A1"), context);
+            xlsArea.processFormulas();    
+            
+            //템플릿 시트 삭제
+            transformer.deleteSheet("Template");
+            transformer.deleteSheet("Total");
+            
+            //실제 파일 내보내기
             transformer.write();
             
         } catch (IOException e) {

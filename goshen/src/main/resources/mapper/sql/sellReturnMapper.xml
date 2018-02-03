@@ -10,7 +10,7 @@
 									, return_quan									
 									) 
 				VALUES
-						( DATE_FORMAT(CURDATE(), '%Y%m%d')
+						( REPLACE(#{sell_dt}, '-', '')
 						, IFNULL((SELECT MAX(return_seq) + 1 FROM sell_return AS T1 WHERE return_dt = DATE_FORMAT(CURDATE(), '%Y%m%d')), 1)
 						, REPLACE(#{sell_dt}, '-', '')
 						, #{cust_no}
@@ -29,31 +29,22 @@
 				, f.return_quan		/*반품수량*/
 				, a.unit
 				, e.unit_nm
-				, a.unit_price
 				, d.tax_yn
-				, CASE WHEN d.tax_yn = 'N' THEN TRUNCATE(CASE WHEN a.unit_price > 0 THEN (a.sell_quan * a.unit_price) 
-															  ELSE (a.sell_quan * a.prod_price)
-														  END
-														 , 2)
+				, CASE WHEN d.tax_yn = 'N' THEN TRUNCATE(a.sell_quan * b.prod_price, 2)
 					   ELSE 0
 				   END tax_free /*면세*/
-				, CASE WHEN d.tax_yn = 'Y' THEN TRUNCATE(CASE WHEN a.unit_price > 0 THEN (a.sell_quan * a.unit_price) / 1.1
-															  ELSE (a.sell_quan * a.prod_price) / 1.1
-														  END
-														 , 2)
+				, CASE WHEN d.tax_yn = 'Y' THEN TRUNCATE((a.sell_quan * b.prod_price) / 1.1, 2)
 					   ELSE 0 
 				   END supply /*공급가액*/
-				, CASE WHEN d.tax_yn = 'Y' THEN TRUNCATE((CASE WHEN a.unit_price > 0 THEN (a.sell_quan * a.unit_price) / 1.1
-															   ELSE (a.sell_quan * a.prod_price) / 1.1
-														   END
-														  ) /10
-														  , 2)
+				, CASE WHEN d.tax_yn = 'Y' THEN TRUNCATE(((a.sell_quan * b.prod_price) / 1.1) /10, 2)
 					   ELSE 0
 				   END tax /*부가세*/
-				, CASE WHEN a.unit_price > 0 THEN a.sell_quan * a.unit_price
-					   ELSE a.sell_quan * a.prod_price				 		
-			       END total_price /*계*/
-		  FROM sell a LEFT JOIN customer c
+				, a.sell_quan * b.prod_price END total_price /*계*/
+		  FROM sell a LEFT JOIN product_price  b
+							 ON a.cust_no = b.cust_no
+						    AND a.prod_no = b.prod_no
+						    AND a.sell_dt BETWEEN b.start_dt AND b.end_dt
+						   LEFT JOIN customer c
 						 	 ON a.cust_no = c.cust_no
 					  LEFT JOIN product d
 						 	 ON a.prod_no = d.prod_no
@@ -74,6 +65,13 @@
 		   AND a.prod_no = #{prod_no}
 		 </if>
     </select>
+    
+    <update id="setUpdSellReturn" parameterType="hashmap">
+    	UPDATE sell_return
+    	   SET return_quan = #{return_quan}
+		 WHERE return_dt = #{return_dt}
+		   AND return_seq = #{return_seq}
+    </update>
     
     <delete id="setDelSellReturn" parameterType="hashmap">
 		DELETE FROM sell_return 
