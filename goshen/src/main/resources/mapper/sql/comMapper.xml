@@ -25,4 +25,5 @@
 			   , truck_nm 
 		  FROM delivery_info
     </select>
+    
 </mapper>
