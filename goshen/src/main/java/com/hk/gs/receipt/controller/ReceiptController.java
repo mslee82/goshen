@@ -64,22 +64,6 @@ public class ReceiptController {
 	}
 	
 	/**
-	 * 영수증 미리보기 리포트... 이거 어렵네
-	 * @throws Exception 
-	 */
-	@ResponseBody
-	@RequestMapping(value = "/receipt/previewReceiptReport.do")
-	public ModelAndView privewReceiptReport(@RequestParam Map<String, Object> pMap) throws Exception {
-		List<HashMap<String, Object>> previewList = receiptService.previewReceipt(pMap);
-		JRDataSource jRdataSource = new JRBeanCollectionDataSource(previewList);
-		HashMap<String, Object> returnMap = new HashMap<String, Object>();
-		returnMap.put("datasource", jRdataSource);
-		ModelAndView mav = new ModelAndView("pdfReport",returnMap);
-		//mav.addObject("list", jRdataSource);
-        return mav;
-	}
-	
-	/**
 	 * 영수증 엑셀로 다운로드
 	 * @since 2017.12.09
 	 * @author 이명선
@@ -108,21 +92,13 @@ public class ReceiptController {
 		
 		//면세 분리발행시 면세나 과세가 판매 내역이 없을땐 아예 시트를 생성하지 않도록 조회할때 조건으로 넣어준다.
 		if("2".equals(strReceiptLv)) {
-		//	pMap.put("sReceiptLv", strReceiptLv);
+			pMap.put("sReceiptLv", strReceiptLv);
 		} else {
 			pMap.put("sReceiptLv", "");
 		}
 		
 		//엑셀 multi sheet 처리를 위한 조회
 		tmpList = receiptService.getSellDtList(pMap);
-		
-		/*
-		if("Y".equals(strMainStoreYn)) {
-			//지점이 있을때
-			tmpList = receiptService.getSellDtListForBranch(pMap);
-		} else {
-			tmpList = receiptService.getSellDtList(pMap);
-		}*/
 		
 		//엑셀 multi sheet 처리를 위한 작업
 		int iTmpList = tmpList.size();
@@ -142,6 +118,8 @@ public class ReceiptController {
 			
 			//기간별 영수증 조회 엑셀 양식에 맞춤
 			receiptList = receiptService.previewReceipt(tmpMap);
+			
+			//당일 합계
 			receiptMap.put("receiptData", receiptList);
 			receiptMap.put("dt_list"	, tmpList.get(idx).get("dt_list"));
 			receiptMap.put("company_nm"	, tmpList.get(idx).get("company_nm"));
