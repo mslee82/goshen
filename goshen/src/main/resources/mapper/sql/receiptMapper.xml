@@ -16,23 +16,24 @@
 						, e.unit_nm
 						, d.tax_yn
 						, b.prod_price
-						, CASE WHEN d.tax_yn = 'N' THEN TRUNCATE(a.sell_quan * b.prod_price, 2)
-							   ELSE 0
+						, CASE WHEN d.tax_yn = 'N' THEN CAST(TRUNCATE(a.sell_quan * b.prod_price, 2) AS double)
+							   ELSE NULL
 						   END tax_free /*면세*/
-						, CASE WHEN d.tax_yn = 'Y' THEN TRUNCATE( (a.sell_quan * b.prod_price) / 1.1, 2)
-							   ELSE 0 
+						, CASE WHEN d.tax_yn = 'Y' THEN CAST(TRUNCATE( (a.sell_quan * b.prod_price) / 1.1, 2) AS double)
+							   ELSE NULL
 						   END supply /*공급가액*/
-						, CASE WHEN d.tax_yn = 'Y' THEN TRUNCATE(( (a.sell_quan * b.prod_price) / 1.1) /10 , 2)
-							   ELSE 0
+						, CASE WHEN d.tax_yn = 'Y' THEN CAST(TRUNCATE(( (a.sell_quan * b.prod_price) / 1.1) /10, 2) AS double)
+							   ELSE NULL
 						   END tax /*부가세*/
 						, a.sell_quan * b.prod_price AS total_price /*계*/
+						, d.prod_typ
 						, '' AS gb /*반품구분*/
 				  FROM sell a LEFT JOIN product_price  b
 									 ON a.cust_no = b.cust_no
 								    AND a.prod_no = b.prod_no
 								    AND a.sell_dt BETWEEN b.start_dt AND b.end_dt
-				  			  JOIN customer c
-								ON a.cust_no = c.cust_no
+				  			  	   JOIN customer c
+									 ON a.cust_no = c.cust_no
 							  LEFT JOIN product d
 								 	 ON a.prod_no = d.prod_no
 							  LEFT JOIN unit e
@@ -54,23 +55,24 @@
 						, e.unit_nm
 						, d.tax_yn
 						, b.prod_price
-						, CASE WHEN d.tax_yn = 'N' THEN TRUNCATE((f.return_quan * b.prod_price), 2) * -1
-							   ELSE 0
+						, CASE WHEN d.tax_yn = 'N' THEN CAST(TRUNCATE((f.return_quan * b.prod_price), 2) * -1 AS double)
+							   ELSE NULL
 						   END tax_free /*면세*/
-						, CASE WHEN d.tax_yn = 'Y' THEN TRUNCATE((f.return_quan * b.prod_price) / 1.1, 2) * -1
-							   ELSE 0 
+						, CASE WHEN d.tax_yn = 'Y' THEN CAST(TRUNCATE((f.return_quan * b.prod_price) / 1.1, 2) * -1 AS double)
+							   ELSE NULL
 						   END supply /*공급가액*/
-						, CASE WHEN d.tax_yn = 'Y' THEN TRUNCATE(((f.return_quan * b.prod_price) / 1.1) /10, 2) * -1
-							   ELSE 0
+						, CASE WHEN d.tax_yn = 'Y' THEN CAST(TRUNCATE(((f.return_quan * b.prod_price) / 1.1) /10, 2) * -1 AS double)
+							   ELSE NULL
 						   END tax /*부가세*/
 						, (f.return_quan * b.prod_price) * -1	AS total_price /*계*/
+						, d.prod_typ
 						, 'R' AS gb /*반품구분*/
 				  FROM sell a LEFT JOIN product_price  b
 									 ON a.cust_no = b.cust_no
 								    AND a.prod_no = b.prod_no
 								    AND a.sell_dt BETWEEN b.start_dt AND b.end_dt
-				  			  JOIN customer c
-								ON a.cust_no = c.cust_no
+				  			  	   JOIN customer c
+									 ON a.cust_no = c.cust_no
 							  LEFT JOIN product d
 								 	 ON a.prod_no = d.prod_no
 							  LEFT JOIN unit e
@@ -86,7 +88,7 @@
 			   	   AND ((c.receipt_lv = 2 AND d.tax_yn = 'N') OR (c.receipt_lv = 1 AND d.tax_yn = 'Y'))
 			   </if>
 			) k
-		ORDER BY k.prod_nm, k.gb
+		ORDER BY k.tax_yn DESC, k.prod_typ, k.prod_nm, k.gb
     </select>
 
     <select id="getCustInfo" parameterType="hashmap" resultType="hashmap">
@@ -143,8 +145,8 @@
 									 ON a.cust_no = b.cust_no
 								    AND a.prod_no = b.prod_no
 								    AND a.sell_dt BETWEEN b.start_dt AND b.end_dt
-				  			  JOIN customer c
-								ON a.cust_no = c.cust_no
+				  			  	   JOIN customer c
+									 ON a.cust_no = c.cust_no
 							  LEFT JOIN product d
 								 	 ON a.prod_no = d.prod_no
 							  LEFT JOIN unit e
@@ -163,8 +165,8 @@
 									 ON a.cust_no = b.cust_no
 								    AND a.prod_no = b.prod_no
 								    AND a.sell_dt BETWEEN b.start_dt AND b.end_dt
-				  			  JOIN customer c
-								ON a.cust_no = c.cust_no
+				  			  	   JOIN customer c
+									 ON a.cust_no = c.cust_no
 							  LEFT JOIN product d
 								 	 ON a.prod_no = d.prod_no
 							  LEFT JOIN unit e
@@ -180,5 +182,74 @@
 			   </if>
 			) k
 		ORDER BY k.sell_dt
+    </select>
+    
+    <select id="getSellTotalPrice" parameterType="hashmap" resultType="hashmap">
+    	SELECT DATE_FORMAT(k.sell_dt + 1, '%Y%m%d') sell_dt
+    			, SUM(price) total_price
+    	  FROM (
+				 /* 판매내역 */
+				 SELECT a.sell_dt
+				 		, a.sell_seq
+				 		, '' AS return_seq
+				 		, a.cust_no
+						, c.cust_nm
+						, c.branch_nm
+						, d.prod_nm
+						, a.sell_quan
+						, a.unit
+						, e.unit_nm
+						, d.tax_yn
+						, b.prod_price
+						, d.prod_typ
+						, (a.sell_quan * b.prod_price) AS price
+						, '' AS gb /*반품구분*/
+				  FROM sell a LEFT JOIN product_price  b
+									 ON a.cust_no = b.cust_no
+								    AND a.prod_no = b.prod_no
+								    AND a.sell_dt BETWEEN b.start_dt AND b.end_dt
+				  			  	   JOIN customer c
+									 ON a.cust_no = c.cust_no
+							  LEFT JOIN product d
+								 	 ON a.prod_no = d.prod_no
+							  LEFT JOIN unit e
+								     ON a.unit = e.unit
+				 WHERE a.cust_no = #{cust_no}
+				   AND a.sell_dt = DATE_FORMAT(DATE_ADD(DATE_FORMAT(#{fromSellDt},'%Y%m%d'), INTERVAL -1 DAY), '%Y%m%d') 
+				 UNION
+				 /* 반품내역 */
+				 SELECT f.return_dt AS sell_dt
+				 		, '' AS sell_seq
+				 		, f.return_seq
+				 		, a.cust_no
+						, c.cust_nm
+						, c.branch_nm
+						, d.prod_nm
+						, f.return_quan AS sell_quan
+						, a.unit
+						, e.unit_nm
+						, d.tax_yn
+						, b.prod_price
+						, d.prod_typ
+						, (f.return_quan * b.prod_price) AS price
+						, 'R' AS gb /*반품구분*/
+				  FROM sell a LEFT JOIN product_price  b
+									 ON a.cust_no = b.cust_no
+								    AND a.prod_no = b.prod_no
+								    AND a.sell_dt BETWEEN b.start_dt AND b.end_dt
+				  			  	   JOIN customer c
+									 ON a.cust_no = c.cust_no
+							  LEFT JOIN product d
+								 	 ON a.prod_no = d.prod_no
+							  LEFT JOIN unit e
+								     ON a.unit = e.unit
+						           JOIN sell_return f
+						     		 ON a.cust_no = f.cust_no
+						     		AND a.sell_dt = f.sell_dt
+						     		AND a.sell_seq = f.sell_seq				     		
+				 WHERE a.cust_no = #{cust_no}
+				   AND f.return_dt = DATE_FORMAT(DATE_ADD(DATE_FORMAT(#{fromSellDt},'%Y%m%d'), INTERVAL -1 DAY), '%Y%m%d') 
+			) k
+		GROUP BY k.sell_dt, k.branch_nm
     </select>
 </mapper>

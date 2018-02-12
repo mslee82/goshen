@@ -21,6 +21,7 @@
 			  	      AND a.end_dt = '99991231'
 			  	  ) prod_price
 			  	, (SELECT tax_yn FROM product WHERE prod_nm = #{D}) tax_yn
+			  	, (SELECT prod_typ FROM product WHERE prod_nm = #{D}) prod_typ
 		  FROM dual
     </select>
     
@@ -31,7 +32,6 @@
 							, prod_no
 							, sell_quan
 							, unit
-							, truck_no
 						) 
 				VALUES
 				<foreach collection="sellList" item="item" separator=",">
@@ -47,15 +47,7 @@
 							, #{item.sell_seq}
 							, (SELECT prod_no FROM product WHERE prod_nm = #{item.prod_nm})
 							, #{item.sell_quan}
-							, (SELECT unit FROM unit WHERE unit_nm = #{item.unit_nm} OR unit_al = #{item.unit_nm})
-						<choose>
-							<when test="item.branch_nm != null and item.branch_nm != ''">
-								, (SELECT truck_no FROM customer WHERE cust_nm = #{item.cust_nm} AND branch_nm = #{item.branch_nm})
-							</when>
-						 	<otherwise>
-						 		, (SELECT truck_no FROM customer WHERE cust_nm = #{item.cust_nm})
-						 	</otherwise>
-						</choose>
+							, (SELECT unit FROM unit WHERE unit_nm = #{item.unit_nm} OR unit_al = #{item.unit_nm})						
 						)
 				</foreach>
     </insert>
@@ -73,7 +65,6 @@
 							, prod_no
 							, sell_quan
 							, unit
-							, truck_no
 						) 
 				VALUES
 						( DATE_FORMAT(#{sell_dt},'%Y%m%d')
@@ -82,7 +73,6 @@
 							, #{prod_no}
 							, #{sell_quan}
 							, #{unit}
-							, #{truck_no}
 						)
     </insert>
     
@@ -90,9 +80,18 @@
 		UPDATE sell 
 		   SET prod_no = #{prod_no}
 			   , sell_quan = #{sell_quan}
-			   , unit = #{unit}	
-			   , truck_no = #{truck_no}			
+			   , unit = #{unit}				   		
 		 WHERE sell_dt = DATE_FORMAT(#{sell_dt},'%Y%m%d')
+		   AND cust_no = #{cust_no}
+		   AND sell_seq = #{sell_seq}
+    </update>
+    
+    <update id="setUpdSellForList" parameterType="hashmap">
+		UPDATE sell 
+		   SET prod_no = (SELECT prod_no FROM product WHERE prod_nm = #{prod_nm})
+			   , sell_quan = #{sell_quan}
+			   , unit = (SELECT unit FROM unit WHERE unit_nm = #{unit_nm} OR unit_al = #{unit_nm})				   		
+		 WHERE sell_dt = #{sell_dt}
 		   AND cust_no = #{cust_no}
 		   AND sell_seq = #{sell_seq}
     </update>
@@ -100,7 +99,7 @@
     <select id="getSellList" parameterType="hashmap" resultType="hashmap">
     	 SELECT DATE_FORMAT(a.sell_dt, '%Y-%m-%d') sell_dt
  		 		, a.cust_no
-				, CASE WHEN c.branch_nm IS NULL THEN c.cust_nm
+				, CASE WHEN c.branch_nm IS NULL OR c.branch_nm = '' THEN c.cust_nm
 					   ELSE CONCAT(c.cust_nm, '-', IFNULL(c.branch_nm,'')) 
 				   END cust_nm 
 				, a.sell_seq
@@ -119,7 +118,7 @@
 				, CASE WHEN d.tax_yn = 'Y' THEN TRUNCATE(((a.sell_quan * b.prod_price) / 1.1) /10, 2)
 					   ELSE 0
 				   END tax /*부가세*/
-				, a.sell_quan * b.prod_price total_price /*계*/
+				, TRUNCATE(a.sell_quan * b.prod_price, 2) total_price /*계*/
 				, f.return_seq
 		  FROM sell a LEFT JOIN product_price  b
 							 ON a.cust_no = b.cust_no
@@ -154,8 +153,7 @@
 			   , sell_seq
 			   , prod_no
 			   , unit
-			   , sell_quan 
-			   , truck_no
+			   , sell_quan			   
 		  FROM sell
 		 WHERE sell_dt = DATE_FORMAT(#{sell_dt},'%Y%m%d')	
 		   AND cust_no = #{cust_no}
@@ -187,7 +185,14 @@
 							, #{use_yn}
 						)
     </insert>
-    
+        	
+	<update id="setProductInfoForList" parameterType="hashmap">	
+		UPDATE product
+		   SET tax_yn = #{tax_yn}
+		   		, prod_typ = #{prod_typ}
+		 WHERE prod_nm = #{prod_nm}
+	</update>
+	
     <select id="getProductPriceInfo" parameterType="hashmap" resultType="hashmap">
 		SELECT cust_no
 			   , prod_no
@@ -202,7 +207,7 @@
 	
 	<update id="setProductPriceEndDt" parameterType="hashmap">	
 		UPDATE product_price
-		   SET end_dt = DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -1 DAY),'%Y%m%d')
+		   SET end_dt = DATE_FORMAT(DATE_ADD(#{sell_dt}, INTERVAL -1 DAY),'%Y%m%d')
 		 WHERE cust_no = #{cust_no}
 		   AND prod_no = #{prod_no}
 		   AND prod_seq = #{prod_seq}
@@ -217,7 +222,7 @@
 									, end_dt
 									) 
 				VALUES
-						( DATE_FORMAT(NOW(),'%Y%m%d')
+						( #{sell_dt}
 						, (SELECT cust_no FROM customer WHERE cust_nm = #{cust_nm})
 						, (SELECT prod_no FROM product WHERE prod_nm = #{prod_nm})
 						, #{next_prod_seq}

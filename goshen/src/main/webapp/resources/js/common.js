@@ -86,7 +86,7 @@ var fileUpload = new function() {
 	}
 	
 	this.setCallback = function setCallback(callBack){
-		gfv_ajaxCallback = callBack;
+		gfv_ajaxCallback = callBack;		
 	};
 	
 	
@@ -182,7 +182,7 @@ var commonAjax = new function () {
 					gfv_ajaxCallback(data);
 				}
 				else {
-					eval(gfv_ajaxCallback + "(data);");
+					eval(gfv_ajaxCallback + "(data);");					
 				}
 			}
 		 ,error: OnError

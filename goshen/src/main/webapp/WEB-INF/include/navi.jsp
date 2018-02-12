@@ -64,10 +64,9 @@
 						<a href="/receipt/viewReceipt.do">영수증 조회</a>
 					</li>
 					<li>
-						<a href="#none">배차정보</a>
+						<a href="#none">작업표</a>
 						<ul class="lnb_2lev">
-							<li><a href="/sell/deliveryInfoListPage.do">배차목록 조회</a></li>
-							<li><a href="/product/productPriceListPage.do">차량정보 관리</a></li>							
+							<li><a href="/sell/deliveryInfoListPage.do">작업표 조회 및 다운로드</a></li>
 						</ul>
 					</li>
 					<li>

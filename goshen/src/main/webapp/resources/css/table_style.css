@@ -126,6 +126,13 @@ table {
 .list_table .price{
 	width:60px;
 	height:20px;	
+	text-align:right;
+}
+.list_table .unit{
+	width:60px;
+}
+.list_table select{
+	width:65px;
 }
 .list_table tr {
     height: 30px;

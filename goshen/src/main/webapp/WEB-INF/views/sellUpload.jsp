@@ -61,6 +61,11 @@
 			var vCurrCustNm = "";
 			var vSelectedY = "";
 			var vSelectedN = "";
+			
+			var vSelectedA = "";
+			var vSelectedB = "";
+			var vSelectedC = "";
+			var vSelectedD = "";
 			$.each(result.list, function(i, val){
 				vCurrCustNm = gfn_nvl(val.cust_nm);
 				if(vCurrCustNm != vBfCustNm){
@@ -75,9 +80,11 @@
 				//dataList += '<td name="listProdNm"><input name="prodNm" class="price" value="' + gfn_nvl(val.prod_nm) 	+ '" /><button type="button" class="search_btn" id="btnSchProd"><i class="fa fa-search"></i></button></td>';		//상품
 				dataList += '<td name="listProdNm"><input type="text" id="prodNm" list="prodList" autocomplete="on" maxlength="50" value="' + gfn_nvl(val.prod_nm) 	+ '"><datalist id="prodList"></datalist></td>';		//상품
 				dataList += '<td name="listSellQuan"><input type="text" class="price" id="sellQuan" value="' + gfn_nvl(val.sell_quan) + '" /></td>';		//수량
-				dataList += '<td name="listUnitNm">' + gfn_nvl(val.unit_nm) 	+ '</td>';		//단위
+				//dataList += '<td name="listUnitNm">' + gfn_nvl(val.unit_nm) 	+ '</td>';		//단위				
+				dataList += '<td name="listUnitNm"><input type="text" class="unit" id="unitNm" list="unitList" autocomplete="on" maxlength="5" value="' + gfn_nvl(val.unit_nm) 	+ '"><datalist id="unitList"></datalist></td>';		//단위
+				dataList += '<td name="listProdPrice"><input type="text" name="prodPrice" class="price" value="' + gfn_nvl(val.prod_price) + '"/></td>';	//가격
 				
-				dataList += '<td name="listProdPrice"><input name="prodPrice" class="price" value="' + gfn_nvl(val.prod_price) + '"/></td>';	//가격
+				//과세 여부
 				if("Y" == gfn_nvl(val.tax_yn)){
 					vSelectedY = "selected";
 					vSelectedN = "";
@@ -85,7 +92,32 @@
 					vSelectedY = "";
 					vSelectedN = "selected";
 				}
-				dataList += '<td name="listTaxYn"><select name="taxYn"><option value="N"'+vSelectedN+' >면세</option><option value="Y"'+vSelectedY+'>과세</option></select></td>';	//과세 여부
+				dataList += '<td name="listTaxYn"><select name="taxYn"><option value="N"'+vSelectedN+'>면세</option><option value="Y"'+vSelectedY+'>과세</option></select></td>';	
+				
+				//상품종류
+				if("A" == gfn_nvl(val.prod_typ)){
+					vSelectedA = "selected";
+					vSelectedB = "";
+					vSelectedC = "";
+					vSelectedD = "";
+				} else if("B" == gfn_nvl(val.prod_typ)){
+					vSelectedA = "";
+					vSelectedB = "selected";
+					vSelectedC = "";
+					vSelectedD = "";
+				} else if("C" == gfn_nvl(val.prod_typ)){
+					vSelectedA = "";
+					vSelectedB = "";
+					vSelectedC = "selected";
+					vSelectedD = "";
+				} else if("D" == gfn_nvl(val.prod_typ)){
+					vSelectedA = "";
+					vSelectedB = "";
+					vSelectedC = "";
+					vSelectedD = "selected";
+				}
+				dataList += '<td name="listProdTyp"><select name="prodTyp"><option value="A"'+vSelectedA+'>야채</option><option value="B"'+vSelectedB+'>공산품</option><option value="C"'+vSelectedC+'>수산</option><option value="D"'+vSelectedD+'>고기</option></select></td>';
+				
 				dataList += '</tr>';
 				
 				vBfCustNm = gfn_nvl(val.cust_nm);
@@ -94,6 +126,7 @@
 			});
 			
 			fnProdNmList();
+			fnUnitNmList();
 			fnSetGridActive();
 		}
 
@@ -127,9 +160,10 @@
 						  		, "sell_seq" : this.children.listSellSeq.textContent					//일련번호
 						  		, "prod_nm" : this.children.listProdNm.children.prodNm.value			//상품명
 						  		, "sell_quan" : this.children.listSellQuan.children.sellQuan.value		//판매수량
-						  		, "unit_nm" : this.children.listUnitNm.textContent						//단위명
+						  		, "unit_nm" : this.children.listUnitNm.children.unitNm.value			//단위명
 						  		, "prod_price" : this.children.listProdPrice.children.prodPrice.value	//금액
 						  		, "tax_yn" : this.children.listTaxYn.children.taxYn.value				//과세여부
+						  		, "prod_typ" : this.children.listProdTyp.children.prodTyp.value			//종류
 				}				
 				arrChecked.push(vJsonParam);
 				chkCnt++;
@@ -146,8 +180,12 @@
 			commonAjax.ajax();	
 		}
 		
-		function fnSellSaveCallBack(){
-			alert("등록 완료");
+		function fnSellSaveCallBack(response) {
+			if(response.result.returnYn == "Y"){			
+				alert("완료 되었습니다.");
+			} else{
+				alert("확인이 필요합니다.");
+			}
 		} 
 		
 	</script>
@@ -172,14 +210,15 @@
 					<tr>
 						<th width="5%">등록<br>여부</th>		
 						<th width="5%">판매일자</th>
-						<th width="15%">고객명</th>
-						<th width="15%">지점명</th>					
+						<th width="14%">고객명</th>
+						<th width="14%">지점명</th>					
 						<th width="5%">일련<br>번호</th>
 						<th width="20%">상품명</th>
-						<th width="5%">수량</th>
-						<th width="5%">단위</th>
+						<th width="7%">수량</th>
+						<th width="8%">단위</th>
 						<th width="10%">개당가격</th>
-						<th width="10%">과세여부</th>
+						<th width="6%">과세여부</th>
+						<th width="6%">종류</th>
 					</tr>
 				</thead>
 				<tbody>

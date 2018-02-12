@@ -36,6 +36,27 @@
 			    numberOfMonths: 1,
 			    onClose: function( selectedDate ) {}
 			});
+			
+			//판매가 수정 버튼 이벤트
+			$("#btnPriceMod").on("click", function(){
+				if(confirm("판매정보가 수정됩니다. 수정하시겠습니까?")){
+					fnSellSave();
+				}
+			});
+			
+			//그리드 선택
+			$(document).on("click", "#board_list > tbody > tr > td", function(event){
+				if (event.target.type == 'checkbox') return;
+				var params = $(this).parents("tr");		
+				if($(params).find("input[type='checkbox']").is(":checked")){
+					$(params).removeClass('active');
+					$(params).find("input[type=checkbox]").prop("checked", false);					
+				} else{
+					$(params).addClass('active');
+					$(params).find("input[type=checkbox]").prop("checked", true);					
+				}
+			});	
+			
 		});
 		
 		function fnPreviewReceipt(){
@@ -65,31 +86,102 @@
 			
 			$.each(result.list, function(i, val){
 				
-				dataList  = '<tr>';
-				dataList += '<td>' + (i+1) + '</td>';
-				dataList += '<td>' + gfn_nvl(val.prod_nm) + '</td>';			//품명
-				dataList += '<td>' + gfn_nvl(val.sell_quan) + '</td>';			//수량
-				dataList += '<td>' + gfn_nvl(val.unit_nm) + '</td>';			//단위
-				dataList += '<td>' + gfn_nvl(val.prod_price) + '</td>';			//단가
-				if("N" == gfn_nvl(val.tax_yn)){
-					dataList += '<td>' + gfn_nvl(val.total_price) + '</td>';	//면세
-					dataList += '<td></td>';
-					dataList += '<td></td>';
-					dataList += '<td></td>';
-					dataList += '<td></td>';
+				dataList  = '<tr class="list_row">';
+				dataList += '<td><input type="checkbox" name="chkList"/></td>';
+				dataList += '<td name="listSellDt">' + gfn_nvl(val.sell_dt) 	+ '</td>';		//판매일자
+				dataList += '<td name="listCustNm">' + gfn_nvl(val.cust_nm) 	+ '</td>';		//고객명
+				dataList += '<td name="listBranchNm">' + gfn_nvl(val.branch_nm) + '</td>';		//지점명
+				dataList += '<td name="listSellSeq">' + gfn_nvl(val.sell_seq) 	+ '</td>';		//일련번호
+				dataList += '<td name="listProdNm"><input type="text" id="prodNm" list="prodList" autocomplete="on" maxlength="50" value="' + gfn_nvl(val.prod_nm) 	+ '"><datalist id="prodList"></datalist></td>';		//상품
+				dataList += '<td name="listSellQuan"><input type="text" class="price" id="sellQuan" value="' + gfn_nvl(val.sell_quan) + '" /></td>';		//수량
+				dataList += '<td name="listUnitNm"><input type="text" class="unit" id="unitNm" list="unitList" autocomplete="on" maxlength="5" value="' + gfn_nvl(val.unit_nm) 	+ '"><datalist id="unitList"></datalist></td>';		//단위
+				dataList += '<td name="listProdPrice"><input type="text" name="prodPrice" class="price" value="' + gfn_nvl(val.prod_price) + '"/></td>';	//가격
+				
+				//과세 여부
+				if("Y" == gfn_nvl(val.tax_yn)){
+					vSelectedY = "selected";
+					vSelectedN = "";
 				} else{
-					dataList += '<td></td>';
-					dataList += '<td>' + gfn_nvl(val.supply) + '</td>';			//공급가액
-					dataList += '<td>' + gfn_nvl(val.tax) + '</td>';			//부가세
-					dataList += '<td>' + gfn_nvl(val.total_price) + '</td>';	//계
-					dataList += '<td>' + gfn_nvl(val.total_price) + '</td>';	//합계
+					vSelectedY = "";
+					vSelectedN = "selected";
 				}
-								
+				dataList += '<td name="listTaxYn"><select name="taxYn"><option value="N"'+vSelectedN+'>면세</option><option value="Y"'+vSelectedY+'>과세</option></select></td>';	
+				
+				//상품종류
+				if("A" == gfn_nvl(val.prod_typ)){
+					vSelectedA = "selected";
+					vSelectedB = "";
+					vSelectedC = "";
+					vSelectedD = "";
+				} else if("B" == gfn_nvl(val.prod_typ)){
+					vSelectedA = "";
+					vSelectedB = "selected";
+					vSelectedC = "";
+					vSelectedD = "";
+				} else if("C" == gfn_nvl(val.prod_typ)){
+					vSelectedA = "";
+					vSelectedB = "";
+					vSelectedC = "selected";
+					vSelectedD = "";
+				} else if("D" == gfn_nvl(val.prod_typ)){
+					vSelectedA = "";
+					vSelectedB = "";
+					vSelectedC = "";
+					vSelectedD = "selected";
+				}
+				dataList += '<td name="listProdTyp"><select name="prodTyp"><option value="A"'+vSelectedA+'>야채</option><option value="B"'+vSelectedB+'>공산품</option><option value="C"'+vSelectedC+'>수산</option><option value="D"'+vSelectedD+'>고기</option></select></td>';
+				dataList += '<td name="listSellCustNo" style="display:none">' + gfn_nvl(val.cust_no) + '</td>';		//고객번호		
+				dataList += '<td name="listReturnSeq" style="display:none">' + gfn_nvl(val.return_seq) + '</td>';	//반품일련번호
+				dataList += '<td name="listProdSeq" style="display:none">' + gfn_nvl(val.prod_seq) + '</td>';		//상품일련번호		
 				dataList += '</tr>';
 				
 				$("#board_list tbody").append(dataList);
 			});
+			
+			fnProdNmList();
+			fnUnitNmList();
 		}
+		
+		/**
+		 * 판매정보 수정
+		 */
+		function fnSellSave() {			
+			var arrChecked = [];
+			var vJsonParam = "";
+			var chkCnt = 0;
+
+			//목록을 array에 담아 전달
+			$(".block_list table tbody .active").each(function (i) {
+				vJsonParam = { "sell_dt" : this.children.listSellDt.textContent							//판매일자
+								, "cust_nm" : this.children.listCustNm.textContent	
+								, "cust_no" : this.children.listSellCustNo.textContent					//고객명
+						  		, "sell_seq" : this.children.listSellSeq.textContent					//일련번호
+						  		, "return_seq" : this.children.listReturnSeq.textContent				//반품일련번호
+						  		, "prod_nm" : this.children.listProdNm.children.prodNm.value			//상품명
+						  		, "sell_quan" : this.children.listSellQuan.children.sellQuan.value		//판매수량
+						  		, "unit_nm" : this.children.listUnitNm.children.unitNm.value			//단위명
+						  		, "prod_price" : this.children.listProdPrice.children.prodPrice.value	//금액
+						  		, "tax_yn" : this.children.listTaxYn.children.taxYn.value				//과세여부
+						  		, "prod_typ" : this.children.listProdTyp.children.prodTyp.value			//종류
+				}				
+				arrChecked.push(vJsonParam);
+				chkCnt++;
+			});
+			
+			//전달된 파라미터는 CommUtil.json2List 기능을 통해 List Object로 전환해서 사용한다. 
+			var vJsonString = arrChecked;
+			
+			commonAjax.clearParam(); 
+			commonAjax.setUrl("<c:url value='/receipt/setSellList.do' />");
+			commonAjax.setDataType("json");
+			commonAjax.setJsonParam(vJsonString);
+			commonAjax.setCallback("fnSellSaveCallback");
+			commonAjax.ajax();	
+		}
+		
+		function fnSellSaveCallBack(response){
+			alert("등록 완료");
+		} 
 		
 		function fnDownload(){
 			//datalist 객체에서 value찾기
@@ -157,24 +249,29 @@
 				<thead>
 					<tr>
 						<th width="5%"></th>
-						<th width="20%">품명</th>
-						<th width="5%">수량</th>
-						<th width="5%">단위</th>
-						<th width="10%">단가</th>
-						<th width="10%">면세</th>
-						<th width="10%">공급가액</th>
-						<th width="10%">부가세</th>
-						<th width="10%">계</th>
-						<th width="15%">합계</th>
+						<th width="5%">판매<br/>일자</th>
+						<th width="14%">고객명</th>
+						<th width="14%">지점명</th>					
+						<th width="5%">일련<br>번호</th>
+						<th width="20%">상품명</th>
+						<th width="7%">수량</th>
+						<th width="8%">단위</th>
+						<th width="10%">개당가격</th>
+						<th width="6%">과세<br/>여부</th>
+						<th width="6%">종류</th>
 					</tr>
 				</thead>
 				<tbody>
 			
 				</tbody>
 			</table>
-			
 		</div>
-		
+		<div class="list_btn_group" id="btnGroup">
+			<button class="btn_default" id="btnMod">판매 내용 수정</button>	
+			<button class="btn_default" id="btnDel">판매 내용 삭제</button>		
+			<button class="btn_default" id="btnPriceMod">판매가 수정</button>
+			<button class="btn_default" id="btnReturnCancel">반품취소</button>				
+		</div>
 	</div>
 <%@ include file="/WEB-INF/include/tailer.jspf" %>	
 </body>

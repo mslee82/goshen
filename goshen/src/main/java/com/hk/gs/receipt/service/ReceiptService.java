@@ -1,5 +1,6 @@
 package com.hk.gs.receipt.service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,9 @@ import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
 import com.hk.gs.receipt.mapper.ReceiptMapper;
+import com.hk.gs.sell.mapper.SellMapper;
+import com.hk.gs.sell.mapper.SellReturnMapper;
+import com.hk.gs.util.CommUtil;
 
 /**
  * Handles requests for the application home page.
@@ -25,14 +29,19 @@ public class ReceiptService {
 	@Resource(name = "receiptMapper")
     private ReceiptMapper receiptMapper;
 	
+	@Resource(name = "sellMapper")
+    private SellMapper sellMapper;
+	
+	@Resource(name = "sellReturnMapper")
+    private SellReturnMapper sellReturnMapper;
+	
 	/**
-	 * 영수증 미리보기
+	 * 영수증 발행전 조회
 	 * @since 2017.10.22
 	 * @author 이명선
 	 * @throws Exception 
 	 */
 	public List<HashMap<String, Object>> previewReceipt(Map<String, Object> map) throws Exception {
-		
     	return receiptMapper.getReceiptList(map);		
     }
 	
@@ -66,5 +75,91 @@ public class ReceiptService {
 	public List<HashMap<String, Object>> getSellDtListForBranch(Map<String, Object> map) throws Exception {
 		
     	return receiptMapper.getSellDtListForBranch(map);		
+    }
+	
+	/**
+	 * 영수증 하단의 금액 합계
+	 * @since 2017.12.24
+	 * @author 이명선
+	 * @throws Exception 
+	 */
+	public Map<String, Object> getSellTotalPrice(Map<String, Object> map) throws Exception {
+		
+    	return receiptMapper.getSellTotalPrice(map);		
+    }
+	
+	/**
+	 * 판매가액 등록 및 수정
+	 * @since 2018.01.21
+	 * @author 이명선
+	 * @throws Exception 
+	 */
+	public Map<String, Object> setSellList(Map<String, Object> map) throws Exception {
+		List<Map<String, Object>> jsonData = CommUtil.json2List(String.valueOf(map.get("jsonData")));
+		Map<String, Object> rtnMap = new HashMap<String, Object>();
+		Map<String, Object> tempMap;
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		Map<String, Object> priceInfo = new HashMap<String, Object>();
+		int iProdCnt = 0;
+		String sInputPrice = "";
+		String sGetPrice = "";
+		List<Map<String, Object>> sellist = new ArrayList<Map<String, Object>>();
+		for (int i = 0; i < jsonData.size(); i++) {
+			tempMap = jsonData.get(i);
+			sellist.add(tempMap);
+			
+			paramMap.put("prod_nm", tempMap.get("prod_nm"));
+			paramMap.put("unit_nm", tempMap.get("unit_nm"));
+			paramMap.put("prod_typ", tempMap.get("prod_typ"));
+			paramMap.put("prod_price", tempMap.get("prod_price"));
+			paramMap.put("cust_nm", tempMap.get("cust_nm"));
+			paramMap.put("tax_yn", tempMap.get("tax_yn"));
+    		
+			paramMap.put("cust_no", tempMap.get("cust_no"));
+			paramMap.put("sell_seq", tempMap.get("sell_seq"));
+			paramMap.put("sell_dt", tempMap.get("sell_dt"));
+			paramMap.put("sell_quan", tempMap.get("sell_quan"));
+			paramMap.put("return_seq", tempMap.get("return_seq"));
+			
+    		//상품 등록여부 조회
+    		iProdCnt = sellMapper.getProductInfo(paramMap);
+    		
+    		if(iProdCnt == 0) {
+    			//상품 등록여부 조회 후 없으면 저장
+    			sellMapper.setProductForList(paramMap);
+    		} else{
+    			//있으면 과세여부, 상품종류 수정
+    			sellMapper.setProductInfoForList(paramMap);
+    		}
+    		sInputPrice = paramMap.get("prod_price").toString();
+    		
+    		//단가 처리
+            priceInfo = sellMapper.getProductPriceInfo(paramMap);
+            if(null != priceInfo && null != priceInfo.get("prod_price")){
+            	sGetPrice = priceInfo.get("prod_price").toString();
+            	
+            	//단가가 있는데 금액이 다르다면  종료일을 업데이트하고 새로운 단가를 생성
+            	if(!sInputPrice.equals(sGetPrice)) {
+            		paramMap.put("next_prod_seq", priceInfo.get("next_prod_seq"));
+            		paramMap.put("cust_no", priceInfo.get("cust_no"));
+            		paramMap.put("prod_no", priceInfo.get("prod_no"));
+            		paramMap.put("prod_seq", priceInfo.get("prod_seq"));
+	            	sellMapper.setProductPriceEndDt(paramMap);	//종료일 업뎃
+	            	
+	            	sellMapper.setProductPrice(paramMap);		//새로운 단가 생성
+            	} 
+            } else {            	
+            	//없다면 새로 생성
+            	paramMap.put("next_prod_seq", "1");
+            	sellMapper.setProductPrice(paramMap);
+            }
+           
+            //판매내역 수정
+            sellMapper.setUpdSellForList(paramMap);
+            
+            //반품내역 수정
+            sellReturnMapper.setUpdSellReturn(paramMap);
+		}
+    	return rtnMap;
     }
 }

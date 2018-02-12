@@ -10,8 +10,12 @@
 									, return_quan									
 									) 
 				VALUES
-						( REPLACE(#{sell_dt}, '-', '')
-						, IFNULL((SELECT MAX(return_seq) + 1 FROM sell_return AS T1 WHERE return_dt = DATE_FORMAT(CURDATE(), '%Y%m%d')), 1)
+						( (CASE WHEN DATE_FORMAT(CURTIME(), '%p') = 'AM' THEN DATE_FORMAT(CURDATE(), '%Y%m%d') 
+								ELSE DATE_FORMAT(CURDATE()+1, '%Y%m%d')  
+						    END )
+						, IFNULL((SELECT MAX(return_seq) + 1 FROM sell_return AS T1 WHERE return_dt = (CASE WHEN DATE_FORMAT(CURTIME(), '%p') = 'AM' THEN DATE_FORMAT(CURDATE(), '%Y%m%d') 
+																											ELSE DATE_FORMAT(CURDATE()+1, '%Y%m%d')  
+																									    END )), 1)
 						, REPLACE(#{sell_dt}, '-', '')
 						, #{cust_no}
 						, #{sell_seq}
@@ -21,7 +25,7 @@
     
     <select id="getSellReturnList" parameterType="hashmap" resultType="hashmap">
     	 SELECT DATE_FORMAT(a.sell_dt, '%Y-%m-%d') sell_dt
- 		 		,a.cust_no
+ 		 		, a.cust_no
 				, c.cust_nm
 				, a.sell_seq
 				, d.prod_nm
@@ -68,8 +72,8 @@
     
     <update id="setUpdSellReturn" parameterType="hashmap">
     	UPDATE sell_return
-    	   SET return_quan = #{return_quan}
-		 WHERE return_dt = #{return_dt}
+    	   SET return_quan = #{sell_quan}
+		 WHERE return_dt = #{sell_dt}
 		   AND return_seq = #{return_seq}
     </update>
     

@@ -171,14 +171,18 @@ public class SellService {
 			paramMap.put("prod_price", tempMap.get("prod_price"));
 			paramMap.put("cust_nm", tempMap.get("cust_nm"));
 			paramMap.put("tax_yn", tempMap.get("tax_yn"));
-    		
+			paramMap.put("sell_dt", tempMap.get("sell_dt"));
+			
     		//상품 등록여부 조회
     		iProdCnt = sellMapper.getProductInfo(paramMap);
     		
     		if(iProdCnt == 0) {
     			//상품 등록여부 조회 후 없으면 저장
     			sellMapper.setProductForList(paramMap);
-    		} 
+    		} else{
+    			//있으면 과세여부, 상품종류 수정
+    			sellMapper.setProductInfoForList(paramMap);
+    		}
     		sInputPrice = paramMap.get("prod_price").toString();
     		
     		//단가 처리
@@ -197,6 +201,7 @@ public class SellService {
 	            	sellMapper.setProductPrice(paramMap);		//새로운 단가 생성
             	} 
             } else {
+            	//업로드 시점에는 단가가 없을 가능성이 높기 때문에 if 처리
             	if(!"".equals(sInputPrice)) {
             		//없다면 새로 생성
             		paramMap.put("next_prod_seq", "1");
@@ -209,7 +214,8 @@ public class SellService {
 		//목록으로 한꺼번에 판매내역 저장
 		reqMap.put("sellList", sellist);	        
 	    sellMapper.setSellForExcelUpload(reqMap);
-
+	    
+	    rtnMap.put("returnYn", "Y");
     	return rtnMap;
     }
 }

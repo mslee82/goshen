@@ -3,26 +3,30 @@
 <mapper namespace="com.hk.gs.sell.mapper.DeliveryInfoMapper">
 
 	<select id="getDeliveryListForDrivers" parameterType="hashmap" resultType="hashmap">
-	SELECT prod_nm
-			, GROUP_CONCAT(concat_txt) delivery_detail
-	  FROM (
-			SELECT c.prod_nm
-					, d.cust_nm
-					, b.sell_quan
-					, e.unit_nm
-					, CONCAT(d.cust_nm, b.sell_quan, e.unit_nm) AS concat_txt
-			  FROM delivery_info a JOIN sell b 
-			  						 ON a.truck_no = b.truck_no
-			  				  	   JOIN product c
-						  			 ON b.prod_no = c.prod_no
-						  		   JOIN customer d
-						  			 ON b.cust_no = d.cust_no
-						  		   JOIN unit e
-						  			 ON b.unit = e.unit
-			 WHERE a.truck_no = #{truck_no}
-			   AND b.sell_dt = DATE_FORMAT(#{sell_dt},'%Y%m%d')	
-			) a
-	  GROUP BY prod_nm
+	 	 SELECT prod_nm
+				, GROUP_CONCAT(concat_txt) delivery_detail
+		  FROM (
+				SELECT d.prod_nm
+						, b.cust_nm /*요기 별칭으로다가... 대리님 어서 데이터를 주세요!! 이것을 보면 댈님도 미안한 생각이 들껍니다 ㅋㅋ 어서 데이터를 ㅋㅋㅋㅋ*/
+						, c.sell_quan
+						, e.unit_nm
+						, d.prod_typ
+						, f.ord
+						, CONCAT(b.cust_nm, c.sell_quan, e.unit_nm) AS concat_txt
+				  FROM delivery_info a JOIN customer b						  			 
+							  			 ON a.truck_no = b.truck_no
+							  		   JOIN sell c 
+				  						 ON b.cust_no = c.cust_no
+			   			  			   JOIN product d
+							  			 ON c.prod_no = d.prod_no
+							  		   JOIN unit e
+							  			 ON c.unit = e.unit
+							  	  LEFT JOIN ord f
+							  			 ON d.prod_no = f.prod_no
+				 WHERE c.sell_dt = DATE_FORMAT(#{sell_dt},'%Y%m%d')	
+				) a
+		  GROUP BY prod_nm
+		  ORDER BY prod_typ, ord
 	</select>	
 	
     <select id="getTruckInfo" parameterType="hashmap" resultType="hashmap">

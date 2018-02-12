@@ -43,11 +43,10 @@ a,a:active{
 }
 select {
     height: 22px;
-    padding:3px;
     border: 1px solid #D9DBDE;
     width: 90px;
     float: left;
-    margin-right: 5px;
+    margin-left: 5px;
 }
 input{margin:0;vertical-align:middle;}
 input[type="radio"]{margin-right:5px;}

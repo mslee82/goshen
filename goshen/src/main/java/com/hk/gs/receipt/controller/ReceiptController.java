@@ -64,6 +64,21 @@ public class ReceiptController {
 	}
 	
 	/**
+	 * 판매미리보기에서 저장
+	 * @since 2018.01.24
+	 * @author 이명선
+	 * @throws Exception 
+	 */
+	@RequestMapping(value = "/receipt/setSellList.do")
+	public ModelAndView setSellPrice(@RequestParam Map<String, Object> pMap) throws Exception {
+		ModelAndView mav = new ModelAndView("jsonView");
+		Map<String, Object> rtnMap = receiptService.setSellList(pMap);
+		
+		mav.addObject("result", rtnMap); 
+		return mav;
+	}
+	
+	/**
 	 * 영수증 엑셀로 다운로드
 	 * @since 2017.12.09
 	 * @author 이명선
@@ -84,6 +99,7 @@ public class ReceiptController {
 		
 		List<HashMap<String, Object>> sheetList = new ArrayList<HashMap<String, Object>>();
 		List<HashMap<String, Object>> receiptList = null; 	
+		Map<String, Object> totalPrice = null;
 		Map<String, Object> tmpMap = new HashMap<String, Object>();
 		List<HashMap<String, Object>> tmpList = null;		
 		HashMap<String, Object> receiptMap = null;
@@ -119,8 +135,19 @@ public class ReceiptController {
 			//기간별 영수증 조회 엑셀 양식에 맞춤
 			receiptList = receiptService.previewReceipt(tmpMap);
 			
+			if(idx > 0) {
+				totalPrice = receiptService.getSellTotalPrice(tmpMap);
+			}
+			
 			//당일 합계
-			receiptMap.put("receiptData", receiptList);
+			if(receiptList != null) {
+				receiptMap.put("receiptData", receiptList);
+			}
+			if(totalPrice != null) {
+				if(idx > 0) {
+					receiptMap.put("total_price", totalPrice.get("total_price"));
+				}
+			}
 			receiptMap.put("dt_list"	, tmpList.get(idx).get("dt_list"));
 			receiptMap.put("company_nm"	, tmpList.get(idx).get("company_nm"));
 			receiptMap.put("account"	, tmpList.get(idx).get("account"));
