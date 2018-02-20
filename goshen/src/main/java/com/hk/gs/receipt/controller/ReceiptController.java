@@ -64,7 +64,7 @@ public class ReceiptController {
 	}
 	
 	/**
-	 * 판매미리보기에서 저장
+	 * 영수증 미리보기에서 저장
 	 * @since 2018.01.24
 	 * @author 이명선
 	 * @throws Exception 
@@ -124,6 +124,7 @@ public class ReceiptController {
 			tmpMap.put("cust_no"	, tmpList.get(idx).get("cust_no"));
 			tmpMap.put("fromSellDt"	, tmpList.get(idx).get("dt_list"));
 			tmpMap.put("toSellDt"	, tmpList.get(idx).get("dt_list"));
+			tmpMap.put("sellType"	, pMap.get("sellType"));
 			
 			//면세 영수증 분리 발행 업체는 레벨을 지정해서 나눠서 조회한다.
 			if("2".equals(strReceiptLv)) {
@@ -175,5 +176,20 @@ public class ReceiptController {
         
         me.multiSheetReceiptDownload(request, response, beans, strFileNm, "multitest.xls", "xls");
         
+	}
+	
+	/**
+	 * 영수증 다운로드전 미입고 내역 조회후 메세지 처리
+	 * @since 2018.02.19
+	 * @author 이명선
+	 * @throws Exception 
+	 */
+	@RequestMapping(value = "/receipt/getCheckSellType.do")
+	public ModelAndView getCheckSellType(@RequestParam Map<String, Object> pMap) throws Exception {
+		ModelAndView mav = new ModelAndView("jsonView");
+		Map<String, Object> rtnMap = receiptService.getCheckSellType(pMap);
+		
+		mav.addObject("result", rtnMap); 
+		return mav;
 	}
 }

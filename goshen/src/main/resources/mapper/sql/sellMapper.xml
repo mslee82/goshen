@@ -7,7 +7,7 @@
 				, #{B} AS cust_nm
 				, #{C} AS sell_seq
 				, #{D} AS prod_nm
-				, #{E} AS sell_quan
+				, REPLACE(REPLACE(#{E}, '교', ''), '미', '') AS sell_quan
 				, #{F} AS unit_nm
 				, #{G} AS branch_nm
 				, IFNULL((SELECT 'Y' FROM product WHERE prod_nm = #{D}), 'N') new_yn
@@ -22,6 +22,7 @@
 			  	  ) prod_price
 			  	, (SELECT tax_yn FROM product WHERE prod_nm = #{D}) tax_yn
 			  	, (SELECT prod_typ FROM product WHERE prod_nm = #{D}) prod_typ
+			  	, REPLACE(REPLACE(SUBSTRING(#{E}, 1, 1), '교', 'E'), '미', 'N') AS sell_type
 		  FROM dual
     </select>
     
@@ -32,6 +33,7 @@
 							, prod_no
 							, sell_quan
 							, unit
+							, sell_type
 						) 
 				VALUES
 				<foreach collection="sellList" item="item" separator=",">
@@ -48,6 +50,7 @@
 							, (SELECT prod_no FROM product WHERE prod_nm = #{item.prod_nm})
 							, #{item.sell_quan}
 							, (SELECT unit FROM unit WHERE unit_nm = #{item.unit_nm} OR unit_al = #{item.unit_nm})						
+							, #{item.sell_type}
 						)
 				</foreach>
     </insert>

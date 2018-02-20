@@ -24,6 +24,8 @@
 							  	  LEFT JOIN ord f
 							  			 ON d.prod_no = f.prod_no
 				 WHERE c.sell_dt = DATE_FORMAT(#{sell_dt},'%Y%m%d')	
+				   /*미입제외 교환은 무조건 작업표에만 포함시킴*/
+			   	   AND (c.sell_type = 'E' OR c.sell_type IS NULL)
 				) a
 		  GROUP BY prod_nm
 		  ORDER BY prod_typ, ord

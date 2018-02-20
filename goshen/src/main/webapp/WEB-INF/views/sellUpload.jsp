@@ -66,6 +66,8 @@
 			var vSelectedB = "";
 			var vSelectedC = "";
 			var vSelectedD = "";
+			
+			var vSelectedE = "";
 			$.each(result.list, function(i, val){
 				vCurrCustNm = gfn_nvl(val.cust_nm);
 				if(vCurrCustNm != vBfCustNm){
@@ -77,10 +79,25 @@
 				dataList += '<td name="listCustNm">' + gfn_nvl(val.cust_nm) 	+ '</td>';		//고객명
 				dataList += '<td name="listBranchNm">' + gfn_nvl(val.branch_nm) + '</td>';		//지점명
 				dataList += '<td name="listSellSeq">' + vSeq + '</td>';		//일련번호
-				//dataList += '<td name="listProdNm"><input name="prodNm" class="price" value="' + gfn_nvl(val.prod_nm) 	+ '" /><button type="button" class="search_btn" id="btnSchProd"><i class="fa fa-search"></i></button></td>';		//상품
+				
+				//미입/교환
+				if("E" == gfn_nvl(val.sell_type)){
+					vSelectedE = "selected";
+					vSelectedN = "";
+					vSelectedY = "";
+				} else if("N" == gfn_nvl(val.sell_type)){
+					vSelectedE = "";
+					vSelectedN = "selected";
+					vSelectedY = "";
+				} else{
+					vSelectedE = "";
+					vSelectedN = "";
+					vSelectedY = "selected";
+				}
+				dataList += '<td name="listSellType"><select name="sellType"><option value="E"'+vSelectedE+'>교환</option><option value="N"'+vSelectedN+'>미입</option><option value=""'+vSelectedY+'></option></select></td>';		//미입/교환
+				
 				dataList += '<td name="listProdNm"><input type="text" id="prodNm" list="prodList" autocomplete="on" maxlength="50" value="' + gfn_nvl(val.prod_nm) 	+ '"><datalist id="prodList"></datalist></td>';		//상품
 				dataList += '<td name="listSellQuan"><input type="text" class="price" id="sellQuan" value="' + gfn_nvl(val.sell_quan) + '" /></td>';		//수량
-				//dataList += '<td name="listUnitNm">' + gfn_nvl(val.unit_nm) 	+ '</td>';		//단위				
 				dataList += '<td name="listUnitNm"><input type="text" class="unit" id="unitNm" list="unitList" autocomplete="on" maxlength="5" value="' + gfn_nvl(val.unit_nm) 	+ '"><datalist id="unitList"></datalist></td>';		//단위
 				dataList += '<td name="listProdPrice"><input type="text" name="prodPrice" class="price" value="' + gfn_nvl(val.prod_price) + '"/></td>';	//가격
 				
@@ -158,6 +175,7 @@
 						  		, "cust_nm" : this.children.listCustNm.textContent						//고객명
 						  		, "branch_nm" : this.children.listBranchNm.textContent					//지점명
 						  		, "sell_seq" : this.children.listSellSeq.textContent					//일련번호
+						  		, "sell_type" : this.children.listSellType.children.sellType.value		//미입/교환구분
 						  		, "prod_nm" : this.children.listProdNm.children.prodNm.value			//상품명
 						  		, "sell_quan" : this.children.listSellQuan.children.sellQuan.value		//판매수량
 						  		, "unit_nm" : this.children.listUnitNm.children.unitNm.value			//단위명
@@ -213,6 +231,7 @@
 						<th width="14%">고객명</th>
 						<th width="14%">지점명</th>					
 						<th width="5%">일련<br>번호</th>
+						<th width="5%">미입<br>교환</th>
 						<th width="20%">상품명</th>
 						<th width="7%">수량</th>
 						<th width="8%">단위</th>

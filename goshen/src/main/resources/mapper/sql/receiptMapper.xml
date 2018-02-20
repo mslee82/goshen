@@ -5,6 +5,9 @@
     <select id="getReceiptList" parameterType="hashmap" resultType="hashmap">
     	SELECT @rownum := @rownum + 1 as rownum
     		   , k.*
+    		   , CASE WHEN DATE_FORMAT(k.sell_dt,'%m') = DATE_FORMAT(k.return_date,'%m') THEN DATE_FORMAT(k.return_date,'%d일')
+    		     	  ELSE DATE_FORMAT(k.return_date,'%m월%d일')
+    		      END return_dt
     	  FROM (
 				 /* 판매내역 */
 				 SELECT a.sell_dt
@@ -28,6 +31,7 @@
 						, a.sell_quan * b.prod_price AS total_price /*계*/
 						, d.prod_typ
 						, '' AS gb /*반품구분*/
+						, '' AS return_date
 				  FROM sell a LEFT JOIN product_price  b
 									 ON a.cust_no = b.cust_no
 								    AND a.prod_no = b.prod_no
@@ -41,6 +45,19 @@
 						, (SELECT @rownum:=0) TMP
 				 WHERE a.cust_no = #{cust_no}
 				   AND a.sell_dt BETWEEN DATE_FORMAT(#{fromSellDt},'%Y%m%d') AND DATE_FORMAT(#{toSellDt},'%Y%m%d')  
+			<choose>
+				<when test="sellType != null and sellType == 'exclude'">
+				   /*미입 교환 제외 교환은 무조건 작업표에만 포함시킴*/
+				   AND (a.sell_type = '' OR a.sell_type IS NULL)
+				</when>
+				<when test="sellType != null and sellType == 'include'">
+				   /*미입포함 교환 제외 교환은 무조건 작업표에만 포함시킴*/
+			   	   AND (a.sell_type != 'E' OR a.sell_type IS NULL)
+				</when>
+			 	<otherwise>
+			 	   
+			 	</otherwise>
+		 	</choose>
 			   <if test="sReceiptLv != null and sReceiptLv eq '2'.toString()">	   	  
 			   	   AND ((c.receipt_lv = 2 AND d.tax_yn = 'N') OR (c.receipt_lv = 1 AND d.tax_yn = 'Y'))
 			   </if>
@@ -67,6 +84,7 @@
 						, (f.return_quan * b.prod_price) * -1	AS total_price /*계*/
 						, d.prod_typ
 						, 'R' AS gb /*반품구분*/
+						, f.sell_dt AS return_date
 				  FROM sell a LEFT JOIN product_price  b
 									 ON a.cust_no = b.cust_no
 								    AND a.prod_no = b.prod_no
@@ -104,33 +122,72 @@
     </select>
     
     <select id="getSellDtList" parameterType="hashmap" resultType="hashmap">
-		SELECT DISTINCT DATE_FORMAT(a.sell_dt,'%Y-%m-%d') dt_list
-				, c.company_nm
-				, c.account
-				, c.bank_nm
-				, c.reg_no
-				, c.phone
-				, b.cust_no
-				, b.cust_nm
-				, c.receipt_lv
-				, b.branch_nm				
-		  FROM sell a JOIN customer b
-		  			    ON a.cust_no = b.cust_no
-		  			  JOIN company_info c
-		  			    ON b.receipt_lv >= c.receipt_lv	/* 영수증 발행 레벨 */
-		  			  JOIN product d
-		  			    ON a.prod_no = d.prod_no
-		 WHERE a.sell_dt BETWEEN DATE_FORMAT(#{fromSellDt},'%Y%m%d') AND DATE_FORMAT(#{toSellDt},'%Y%m%d')  
-		<if test="sReceiptLv != null and sReceiptLv eq '2'.toString()">
-			/* 발행레벨이 2인 경우에만 조건을 넣어 각각 조회 */
-		   AND ((c.receipt_lv = 2 AND d.tax_yn = 'N') OR (c.receipt_lv = 1 AND d.tax_yn = 'Y'))
-		</if> 
-		<if test="sMainStoreYn != null and sMainStoreYn eq 'N'.toString()">
-		   AND a.cust_no = #{cust_no}
-		</if>
-		<if test="sMainStoreYn != null and sMainStoreYn eq 'Y'.toString()">
-		   AND (b.cust_no = #{cust_no} OR b.mainstore_cust_no = #{cust_no})		   
-		</if>
+    	SELECT k.*
+    	  FROM (
+				SELECT DISTINCT DATE_FORMAT(a.sell_dt,'%Y-%m-%d') dt_list
+						, c.company_nm
+						, c.account
+						, c.bank_nm
+						, c.reg_no
+						, c.phone
+						, b.cust_no
+						, b.cust_nm
+						, c.receipt_lv
+						, b.branch_nm				
+				  FROM sell a JOIN customer b
+				  			    ON a.cust_no = b.cust_no
+				  			  JOIN company_info c
+				  			    ON b.receipt_lv >= c.receipt_lv	/* 영수증 발행 레벨 */
+				  			  JOIN product d
+				  			    ON a.prod_no = d.prod_no
+				 WHERE a.sell_dt BETWEEN DATE_FORMAT(#{fromSellDt},'%Y%m%d') AND DATE_FORMAT(#{toSellDt},'%Y%m%d')  
+				<if test="sReceiptLv != null and sReceiptLv eq '2'.toString()">
+					/* 발행레벨이 2인 경우에만 조건을 넣어 각각 조회 */
+				   AND ((c.receipt_lv = 2 AND d.tax_yn = 'N') OR (c.receipt_lv = 1 AND d.tax_yn = 'Y'))
+				</if> 
+				<if test="sMainStoreYn != null and sMainStoreYn eq 'N'.toString()">
+				   AND a.cust_no = #{cust_no}
+				</if>
+				<if test="sMainStoreYn != null and sMainStoreYn eq 'Y'.toString()">
+				   AND (b.cust_no = #{cust_no} OR b.mainstore_cust_no = #{cust_no})		   
+				</if>
+				
+				 UNION
+				 /* 반품내역 */
+				 SELECT DISTINCT DATE_FORMAT(f.return_dt,'%Y-%m-%d') dt_list
+						, c.company_nm
+						, c.account
+						, c.bank_nm
+						, c.reg_no
+						, c.phone
+						, b.cust_no
+						, b.cust_nm
+						, c.receipt_lv
+						, b.branch_nm			
+				  FROM sell a JOIN customer b
+				  			    ON a.cust_no = b.cust_no
+				  			  JOIN company_info c
+				  			    ON b.receipt_lv >= c.receipt_lv	/* 영수증 발행 레벨 */
+				  			  JOIN product d
+				  			    ON a.prod_no = d.prod_no
+					          JOIN sell_return f
+					     		ON a.cust_no = f.cust_no
+					     	   AND a.sell_dt = f.sell_dt
+					     	   AND a.sell_seq = f.sell_seq				     		
+				 WHERE a.cust_no = #{cust_no}
+				   AND f.return_dt BETWEEN DATE_FORMAT(#{fromSellDt},'%Y%m%d') AND DATE_FORMAT(#{toSellDt},'%Y%m%d')
+				<if test="sReceiptLv != null and sReceiptLv eq '2'.toString()">
+					/* 발행레벨이 2인 경우에만 조건을 넣어 각각 조회 */
+				   AND ((c.receipt_lv = 2 AND d.tax_yn = 'N') OR (c.receipt_lv = 1 AND d.tax_yn = 'Y'))
+				</if> 
+				<if test="sMainStoreYn != null and sMainStoreYn eq 'N'.toString()">
+				   AND a.cust_no = #{cust_no}
+				</if>
+				<if test="sMainStoreYn != null and sMainStoreYn eq 'Y'.toString()">
+				   AND (b.cust_no = #{cust_no} OR b.mainstore_cust_no = #{cust_no})		   
+				</if>   
+			) k
+		ORDER BY k.dt_list asc 
     </select>
     
     <select id="getDailyTotalPrice" parameterType="hashmap" resultType="hashmap">
@@ -251,5 +308,13 @@
 				   AND f.return_dt = DATE_FORMAT(DATE_ADD(DATE_FORMAT(#{fromSellDt},'%Y%m%d'), INTERVAL -1 DAY), '%Y%m%d') 
 			) k
 		GROUP BY k.sell_dt, k.branch_nm
+    </select>
+    
+    <select id="getCheckSellType" parameterType="hashmap" resultType="hashmap">
+		SELECT COUNT(*) cnt 
+		  FROM sell a
+		 WHERE a.cust_no = #{cust_no}
+		   AND a.sell_dt BETWEEN DATE_FORMAT(#{fromSellDt},'%Y%m%d') AND DATE_FORMAT(#{toSellDt},'%Y%m%d')
+		   AND a.sell_type = 'N'  			
     </select>
 </mapper>

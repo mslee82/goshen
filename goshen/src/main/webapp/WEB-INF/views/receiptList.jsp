@@ -183,6 +183,42 @@
 			alert("등록 완료");
 		} 
 		
+		/**
+		 * 미입고 여부를 확인 후 메세지 처리 
+		 */
+		function fnCheckSellType(){
+			//datalist 객체에서 value찾기
+			var vCustNo = $('#srchCustNo').val();
+			var vCustNoVal = $('#custList option').filter(function() {
+				return this.value == vCustNo;
+			}).data('value');
+			if(vCustNo == ""){
+				if(typeof vCustNoVal == "undefined" || null == vCustNoVal){
+					vCustNoVal = "";
+				} 				
+			}
+			
+			commonAjax.setUrl("<c:url value='/receipt/getCheckSellType.do'/>");
+			commonAjax.setDataType("json");
+			commonAjax.clearParam();
+			commonAjax.addParam("cust_no", vCustNoVal);
+			commonAjax.addParam("fromSellDt", gfn_nvl($("#fromSellDt").val()));
+			commonAjax.addParam("toSellDt", gfn_nvl($("#toSellDt").val()));
+			commonAjax.setCallback("fnCheckSellTypeCallback");
+			commonAjax.ajax();
+		}
+		
+		function fnCheckSellTypeCallback(response){
+			if(response.result.cnt > 0){
+				if(confirm("미입고 내역이 있습니다.\n영수증에 포함 하시겠습니까?")){
+					$("#sellType").val("include");
+				} else{
+					$("#sellType").val("exclude");
+				}
+			}			
+			fnDownload();			
+		}
+		
 		function fnDownload(){
 			//datalist 객체에서 value찾기
 			var vCustNo = $('#srchCustNo').val();
@@ -199,6 +235,7 @@
 			commonSubmit.addParam("cust_no", vCustNoVal);
 			commonSubmit.addParam("fromSellDt", gfn_nvl($("#fromSellDt").val()));
 			commonSubmit.addParam("toSellDt", gfn_nvl($("#toSellDt").val()));
+			commonSubmit.addParam("sellType", gfn_nvl($("#sellType").val()));
 			commonSubmit.setMethod("post");
 			commonSubmit.submit();
 		}
@@ -229,12 +266,20 @@
 							<input type="text" class="search_input" id="toSellDt" readonly />
 						</td>
 						<th>고객명</th>
-						<td colspan="2">
+						<td>
 							<input type="text" id="srchCustNo" list="custList" autocomplete="on" maxlength="50">
 							<datalist id="custList">
 						    </datalist>	
 						</td>
-					</tr>					
+						<th class="align-left" style="width:120px">미입고</th>
+						<td class="align-left" style="width:120px">
+							<select id="sellType" style="width:120px">
+								<option value = "" selected>전체</option>
+								<option value = "exclude">미입고 제외</option>
+								<option value = "include">미입고 포함</option>								
+							</select>
+						</td>
+					</tr>									
 				</tbody>
 			</table>
 			<div class="search_submit">
@@ -242,7 +287,7 @@
 			</div>
 		</div>
 		<div class="list_btn_group" id="btnGroup">
-			<button class="btn_default" type="button" id="issueReceipt" onclick="javascript:fnDownload();">다운로드</button>
+			<button class="btn_default" type="button" id="issueReceipt" onclick="javascript:fnCheckSellType();">다운로드</button>
 		</div>
 		<div class="block_list">
 			<table id="board_list" class="list_table colwidth">

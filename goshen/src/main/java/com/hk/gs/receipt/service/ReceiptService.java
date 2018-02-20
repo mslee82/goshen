@@ -162,4 +162,15 @@ public class ReceiptService {
 		}
     	return rtnMap;
     }
+	
+	/**
+	 * 영수증 다운로드전 미입고 내역 조회
+	 * @since 2018.02.19
+	 * @author 이명선
+	 * @throws Exception 
+	 */
+	public Map<String, Object> getCheckSellType(Map<String, Object> map) throws Exception {
+		
+    	return receiptMapper.getCheckSellType(map);		
+    }
 }

@@ -44,12 +44,6 @@
 							<li><a href="/sell/sellUpload.do">판매 엑셀 업로드</a></li>
 							<li><a href="/sell/sellListPage.do">판매 내역</a></li>
 							<li><a href="/sell/sellRegPage.do">판매 등록</a></li>
-						</ul>
-					</li>
-					<li>
-						<a href="#none">반품 및 교환</a>
-						<ul class="lnb_2lev">
-							<li><a href="/sell/sellListPage.do">반품 및 교환</a></li>
 							<li><a href="/sellReturn/sellReturnListPage.do">반품내역 조회</a></li>
 						</ul>
 					</li>
