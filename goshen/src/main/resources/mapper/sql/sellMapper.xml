@@ -23,6 +23,7 @@
 			  	, (SELECT tax_yn FROM product WHERE prod_nm = #{D}) tax_yn
 			  	, (SELECT prod_typ FROM product WHERE prod_nm = #{D}) prod_typ
 			  	, REPLACE(REPLACE(SUBSTRING(#{E}, 1, 1), '교', 'E'), '미', 'N') AS sell_type
+			  	, #{H} AS grp_type
 		  FROM dual
     </select>
     
@@ -34,6 +35,7 @@
 							, sell_quan
 							, unit
 							, sell_type
+							, grp_type
 						) 
 				VALUES
 				<foreach collection="sellList" item="item" separator=",">
@@ -51,6 +53,7 @@
 							, #{item.sell_quan}
 							, (SELECT unit FROM unit WHERE unit_nm = #{item.unit_nm} OR unit_al = #{item.unit_nm})						
 							, #{item.sell_type}
+							, #{item.grp_type}
 						)
 				</foreach>
     </insert>
@@ -226,7 +229,14 @@
 									) 
 				VALUES
 						( #{sell_dt}
-						, (SELECT cust_no FROM customer WHERE cust_nm = #{cust_nm})
+						<choose>
+							<when test="branch_nm != null and branch_nm != ''">
+						   		, (SELECT cust_no FROM customer WHERE cust_nm = #{cust_nm} AND branch_nm = #{branch_nm})		  
+						 	</when>
+						 	<otherwise>
+								, (SELECT cust_no FROM customer WHERE cust_nm = #{cust_nm})
+						 	</otherwise>
+						</choose>
 						, (SELECT prod_no FROM product WHERE prod_nm = #{prod_nm})
 						, #{next_prod_seq}
 						, #{prod_price}

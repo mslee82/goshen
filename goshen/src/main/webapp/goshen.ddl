@@ -66,7 +66,8 @@ CREATE TABLE SELL(
 		PROD_NO INT,
 		UNIT INT,
 		SELL_QUAN DOUBLE,
-		SELL_TYPE VARCHAR(1)
+		SELL_TYPE VARCHAR(1),
+		GRP_TYPE INT
 );
 
 /**********************************/

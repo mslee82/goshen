@@ -134,7 +134,7 @@
 					vSelectedD = "selected";
 				}
 				dataList += '<td name="listProdTyp"><select name="prodTyp"><option value="A"'+vSelectedA+'>야채</option><option value="B"'+vSelectedB+'>공산품</option><option value="C"'+vSelectedC+'>수산</option><option value="D"'+vSelectedD+'>고기</option></select></td>';
-				
+				dataList += '<td name="listGrpType" style="display:none">' + gfn_nvl(val.grp_type) + '</td>';		//작업표 정렬조건
 				dataList += '</tr>';
 				
 				vBfCustNm = gfn_nvl(val.cust_nm);
@@ -182,6 +182,7 @@
 						  		, "prod_price" : this.children.listProdPrice.children.prodPrice.value	//금액
 						  		, "tax_yn" : this.children.listTaxYn.children.taxYn.value				//과세여부
 						  		, "prod_typ" : this.children.listProdTyp.children.prodTyp.value			//종류
+						  		, "grp_type" : this.children.listGrpeType.textContent					//작업표정렬구분
 				}				
 				arrChecked.push(vJsonParam);
 				chkCnt++;
@@ -238,6 +239,7 @@
 						<th width="10%">개당가격</th>
 						<th width="6%">과세여부</th>
 						<th width="6%">종류</th>
+						<th width="6%" style="display:none">작업표정렬조건</th>
 					</tr>
 				</thead>
 				<tbody>

@@ -53,6 +53,8 @@ public class SellService {
         //Service 단에서 가져온 코드 
         ExcelReadOption excelReadOption = new ExcelReadOption();
         excelReadOption.setFilePath(destFile.getAbsolutePath());
+        
+        //A:일자, B:지점, C:순번, D:상품명, E:수량, F:단위, G:지점        
         excelReadOption.setOutputColumns("A","B","C","D","E","F","G");
         excelReadOption.setStartRow(1);        
 	        
@@ -172,6 +174,7 @@ public class SellService {
 			paramMap.put("cust_nm", tempMap.get("cust_nm"));
 			paramMap.put("tax_yn", tempMap.get("tax_yn"));
 			paramMap.put("sell_dt", tempMap.get("sell_dt"));
+			paramMap.put("branch_nm", tempMap.get("branch_nm"));
 			
     		//상품 등록여부 조회
     		iProdCnt = sellMapper.getProductInfo(paramMap);
