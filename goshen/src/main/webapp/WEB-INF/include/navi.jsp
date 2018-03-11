@@ -52,30 +52,19 @@
 						<ul class="lnb_2lev">
 							<li><a href="/product/productPriceUpload.do">단가표 업로드</a></li>
 							<li><a href="/product/productPriceListPage.do">단가표 조회</a></li>
+							<li><a href="/product/comProductPriceListPage.do">공통 단가표 조회 및 저장</a></li>
 						</ul>
 					</li>
 					<li>
-						<a href="/receipt/viewReceipt.do">영수증 조회</a>
+						<a href="#none">영수증</a>
+						<ul class="lnb_2lev">
+							<li><a href="/receipt/viewReceipt.do">영수증 조회 및 다운로드</a></li>
+						</ul>
 					</li>
 					<li>
 						<a href="#none">작업표</a>
 						<ul class="lnb_2lev">
 							<li><a href="/sell/deliveryInfoListPage.do">작업표 조회 및 다운로드</a></li>
-						</ul>
-					</li>
-					<li>
-						<a href="#none">관리</a>
-						<ul class="lnb_2lev">
-							<li><a href="/product/productListPage.do">상품관리</a></li>
-							<li><a href="">재고관리</a></li>
-							<li><a href="">고객관리</a></li>							
-						</ul>
-					</li>
-					<li>
-						<a href="#none">통계</a>
-						<ul class="lnb_2lev">
-							<li><a href="">판매순위</a></li>
-							<li><a href="">고객별 판매 추이</a></li>
 						</ul>
 					</li>
 				</ul>

@@ -7,7 +7,7 @@
 				, GROUP_CONCAT(concat_txt) delivery_detail
 		  FROM (
 				SELECT d.prod_nm
-						, b.cust_nm /*요기 별칭으로다가... 대리님 어서 데이터를 주세요!! 이것을 보면 댈님도 미안한 생각이 들껍니다 ㅋㅋ 어서 데이터를 ㅋㅋㅋㅋ*/
+						, b.cust_nm
 						, c.sell_quan
 						, e.unit_nm
 						, d.prod_typ
@@ -24,8 +24,9 @@
 							  	  LEFT JOIN ord f
 							  			 ON d.prod_no = f.prod_no
 				 WHERE c.sell_dt = DATE_FORMAT(#{sell_dt},'%Y%m%d')	
-				   /*미입제외 교환은 무조건 작업표에만 포함시킴*/
-			   	   AND (c.sell_type = 'E' OR c.sell_type IS NULL)
+				   /*미입(N)제외 교환(E)은 무조건 작업표에만 포함시킴*/
+			   	   AND IFNULL(c.sell_type, '') != 'N'
+			   	   AND a.truck_no = #{truck_no}
 				) a
 		  GROUP BY prod_nm
 		  ORDER BY prod_typ, ord

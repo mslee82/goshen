@@ -681,7 +681,7 @@ textarea.notice_detail {
     width: 48%;
     padding: 10px;
     border: 1px solid #D9DBDE;
-    height: 405px;
+    /*height: 405px;*/
 }
 
 .match_btn_group {

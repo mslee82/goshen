@@ -4,7 +4,7 @@
 
     <select id="getCustNmList" parameterType="hashmap" resultType="hashmap">
 		SELECT cust_no
-			   , cust_nm 
+			   , CONCAT(cust_nm, CASE WHEN IFNULL(branch_nm, '') != '' THEN CONCAT('-', branch_nm) ELSE '' END) AS cust_nm
 		  FROM customer
     </select>
         

@@ -11,15 +11,6 @@
 				, #{F} AS unit_nm
 				, #{G} AS branch_nm
 				, IFNULL((SELECT 'Y' FROM product WHERE prod_nm = #{D}), 'N') new_yn
-				, (SELECT prod_price
-				     FROM product_price a JOIN customer b
-			                                ON a.cust_no = b.cust_no
-			  			 		   	      JOIN product c
-			  						        ON a.prod_no = c.prod_no
-			  	    WHERE b.cust_nm = #{B}
-			  	      AND c.prod_nm = #{D}
-			  	      AND a.end_dt = '99991231'
-			  	  ) prod_price
 			  	, (SELECT tax_yn FROM product WHERE prod_nm = #{D}) tax_yn
 			  	, (SELECT prod_typ FROM product WHERE prod_nm = #{D}) prod_typ
 			  	, REPLACE(REPLACE(SUBSTRING(#{E}, 1, 1), '교', 'E'), '미', 'N') AS sell_type
@@ -42,10 +33,10 @@
 						(#{item.sell_dt}
 						<choose>
 							<when test="item.branch_nm != null and item.branch_nm != ''">
-						   		, (SELECT cust_no FROM customer WHERE cust_nm = #{item.cust_nm} AND branch_nm = #{item.branch_nm})		  
+						   		, (SELECT cust_no FROM customer WHERE (cust_nm = #{item.cust_nm} OR cust_al = #{item.cust_nm}) AND branch_nm = #{item.branch_nm})		  
 						 	</when>
 						 	<otherwise>
-								, (SELECT cust_no FROM customer WHERE cust_nm = #{item.cust_nm})
+								, (SELECT cust_no FROM customer WHERE (cust_nm = #{item.cust_nm} OR cust_al = #{item.cust_nm}) AND (branch_nm IS NULL OR branch_nm = '') )
 						 	</otherwise>
 						</choose>
 							, #{item.sell_seq}
@@ -53,7 +44,14 @@
 							, #{item.sell_quan}
 							, (SELECT unit FROM unit WHERE unit_nm = #{item.unit_nm} OR unit_al = #{item.unit_nm})						
 							, #{item.sell_type}
+						<choose>
+							<when test="item.grp_type != null and item.grp_type != ''">
 							, #{item.grp_type}
+							</when>
+							<otherwise>
+							, NULL
+						 	</otherwise>
+						</choose>
 						)
 				</foreach>
     </insert>
@@ -115,23 +113,24 @@
 				, a.unit
 				, e.unit_nm
 				, d.tax_yn
-				, CASE WHEN d.tax_yn = 'N' THEN TRUNCATE(a.sell_quan * b.prod_price, 2)
+				, CASE WHEN d.tax_yn = 'N' THEN TRUNCATE(a.sell_quan * IFNULL(b.prod_price, g.prod_price), 2)
 					   ELSE 0
 				   END tax_free /*면세*/
-				, CASE WHEN d.tax_yn = 'Y' THEN TRUNCATE((a.sell_quan * b.prod_price) / 1.1, 2)
+				, CASE WHEN d.tax_yn = 'Y' THEN TRUNCATE((a.sell_quan * IFNULL(b.prod_price, g.prod_price)) / 1.1, 2)
 					   ELSE 0 
 				   END supply /*공급가액*/
-				, CASE WHEN d.tax_yn = 'Y' THEN TRUNCATE(((a.sell_quan * b.prod_price) / 1.1) /10, 2)
+				, CASE WHEN d.tax_yn = 'Y' THEN TRUNCATE(((a.sell_quan * IFNULL(b.prod_price, g.prod_price)) / 1.1) /10, 2)
 					   ELSE 0
 				   END tax /*부가세*/
-				, TRUNCATE(a.sell_quan * b.prod_price, 2) total_price /*계*/
+				, TRUNCATE(a.sell_quan * IFNULL(b.prod_price, g.prod_price), 2) total_price /*계*/
 				, f.return_seq
-		  FROM sell a LEFT JOIN product_price  b
+		  FROM sell a LEFT JOIN product_price b
 							 ON a.cust_no = b.cust_no
 						    AND a.prod_no = b.prod_no
+						    AND a.unit = b.unit
 						    AND a.sell_dt BETWEEN b.start_dt AND b.end_dt
-					  JOIN customer c
-						ON a.cust_no = c.cust_no
+					  	   JOIN customer c
+							 ON a.cust_no = c.cust_no
 					  LEFT JOIN product d
 						 	 ON a.prod_no = d.prod_no
 					  LEFT JOIN unit e
@@ -140,6 +139,10 @@
 					         ON a.sell_dt = f.sell_dt
    				        	AND a.cust_no = f.cust_no
 					        AND a.sell_seq = f.sell_seq
+					  LEFT JOIN com_product_price g
+							 ON a.prod_no = g.prod_no
+							AND a.unit = g.unit
+							AND a.sell_dt BETWEEN g.start_dt AND g.end_dt
 		 WHERE 1=1
 		 <if test="sell_dt != null and sell_dt != ''">
 		   AND a.sell_dt = DATE_FORMAT(#{sell_dt},'%Y%m%d')		  
@@ -197,51 +200,12 @@
 		   SET tax_yn = #{tax_yn}
 		   		, prod_typ = #{prod_typ}
 		 WHERE prod_nm = #{prod_nm}
-	</update>
-	
-    <select id="getProductPriceInfo" parameterType="hashmap" resultType="hashmap">
-		SELECT cust_no
-			   , prod_no
-			   , prod_price
-			   , prod_seq
-			   , prod_seq + 1 AS next_prod_seq
-		  FROM product_price
-		 WHERE cust_no = (SELECT cust_no FROM customer WHERE cust_nm = #{cust_nm})
-		   AND prod_no = (SELECT prod_no FROM product WHERE prod_nm = #{prod_nm})
-		   AND end_dt = '99991231'
-	</select>
-	
-	<update id="setProductPriceEndDt" parameterType="hashmap">	
-		UPDATE product_price
-		   SET end_dt = DATE_FORMAT(DATE_ADD(#{sell_dt}, INTERVAL -1 DAY),'%Y%m%d')
-		 WHERE cust_no = #{cust_no}
-		   AND prod_no = #{prod_no}
-		   AND prod_seq = #{prod_seq}
-	</update>
-	
-	<insert id="setProductPrice" parameterType="hashmap">
-		INSERT INTO product_price (start_dt
-									, cust_no
-									, prod_no
-									, prod_seq
-									, prod_price
-									, end_dt
-									) 
-				VALUES
-						( #{sell_dt}
-						<choose>
-							<when test="branch_nm != null and branch_nm != ''">
-						   		, (SELECT cust_no FROM customer WHERE cust_nm = #{cust_nm} AND branch_nm = #{branch_nm})		  
-						 	</when>
-						 	<otherwise>
-								, (SELECT cust_no FROM customer WHERE cust_nm = #{cust_nm})
-						 	</otherwise>
-						</choose>
-						, (SELECT prod_no FROM product WHERE prod_nm = #{prod_nm})
-						, #{next_prod_seq}
-						, #{prod_price}
-						, '99991231'
-						)
-    </insert>
+	</update>	    
     
+    <delete id="delSellList" parameterType="hashmap">
+		DELETE FROM sell 			   		
+		 WHERE sell_dt = DATE_FORMAT(#{sell_dt},'%Y%m%d')
+		   AND cust_no = #{cust_no}
+		   AND sell_seq = #{sell_seq}
+    </delete>
 </mapper>

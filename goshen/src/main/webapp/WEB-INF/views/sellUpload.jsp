@@ -45,7 +45,7 @@
 			    }
 				fileUpload.setURI("<c:url value='/sell/sellUploadExePrev.do'/>");
 				fileUpload.setFormData(oForm);
-				fileUpload.setCallback(fnUploadPrevCallBack);
+				fileUpload.setCallback(fnUploadPrevCallback);
 				fileUpload.ajax();
 			}
 		}
@@ -53,7 +53,7 @@
 		/**
 		 * 업로드 미리보기 callback
 		 */
-		function fnUploadPrevCallBack(result){
+		function fnUploadPrevCallback(result){
 			var dataList;
 			$("#board_list tbody").empty();
 			var vSeq = 0;
@@ -94,12 +94,10 @@
 					vSelectedN = "";
 					vSelectedY = "selected";
 				}
-				dataList += '<td name="listSellType"><select name="sellType"><option value="E"'+vSelectedE+'>교환</option><option value="N"'+vSelectedN+'>미입</option><option value=""'+vSelectedY+'></option></select></td>';		//미입/교환
-				
-				dataList += '<td name="listProdNm"><input type="text" id="prodNm" list="prodList" autocomplete="on" maxlength="50" value="' + gfn_nvl(val.prod_nm) 	+ '"><datalist id="prodList"></datalist></td>';		//상품
-				dataList += '<td name="listSellQuan"><input type="text" class="price" id="sellQuan" value="' + gfn_nvl(val.sell_quan) + '" /></td>';		//수량
-				dataList += '<td name="listUnitNm"><input type="text" class="unit" id="unitNm" list="unitList" autocomplete="on" maxlength="5" value="' + gfn_nvl(val.unit_nm) 	+ '"><datalist id="unitList"></datalist></td>';		//단위
-				dataList += '<td name="listProdPrice"><input type="text" name="prodPrice" class="price" value="' + gfn_nvl(val.prod_price) + '"/></td>';	//가격
+				dataList += '<td name="listSellType"><select name="sellType"><option value="E"'+vSelectedE+'>교환</option><option value="N"'+vSelectedN+'>미입</option><option value=""'+vSelectedY+'></option></select></td>';	//미입/교환
+				dataList += '<td name="listProdNm"><input type="text" id="prodNm" list="prodList" autocomplete="on" maxlength="50" value="' + gfn_nvl(val.prod_nm) 	+ '"><datalist id="prodList"></datalist></td>';				//상품
+				dataList += '<td name="listSellQuan"><input type="text" class="price" id="sellQuan" value="' + gfn_nvl(val.sell_quan) + '" /></td>';																			//수량
+				dataList += '<td name="listUnitNm"><input type="text" class="unit" id="unitNm" list="unitList" autocomplete="on" maxlength="5" value="' + gfn_nvl(val.unit_nm) 	+ '"><datalist id="unitList"></datalist></td>';	//단위
 				
 				//과세 여부
 				if("Y" == gfn_nvl(val.tax_yn)){
@@ -142,6 +140,12 @@
 				$("#board_list tbody").append(dataList);
 			});
 			
+			//숫자만. 수량은 소숫점 단위 입력가능
+			$('.price').numeric({
+				maxPreDecimalPlaces : 10,
+				maxDecimalPlaces    : 3
+			});
+			
 			fnProdNmList();
 			fnUnitNmList();
 			fnSetGridActive();
@@ -179,10 +183,9 @@
 						  		, "prod_nm" : this.children.listProdNm.children.prodNm.value			//상품명
 						  		, "sell_quan" : this.children.listSellQuan.children.sellQuan.value		//판매수량
 						  		, "unit_nm" : this.children.listUnitNm.children.unitNm.value			//단위명
-						  		, "prod_price" : this.children.listProdPrice.children.prodPrice.value	//금액
 						  		, "tax_yn" : this.children.listTaxYn.children.taxYn.value				//과세여부
 						  		, "prod_typ" : this.children.listProdTyp.children.prodTyp.value			//종류
-						  		, "grp_type" : this.children.listGrpeType.textContent					//작업표정렬구분
+						  		, "grp_type" : this.children.listGrpType.textContent					//작업표정렬구분
 				}				
 				arrChecked.push(vJsonParam);
 				chkCnt++;
@@ -199,7 +202,7 @@
 			commonAjax.ajax();	
 		}
 		
-		function fnSellSaveCallBack(response) {
+		function fnSellSaveCallback(response) {
 			if(response.result.returnYn == "Y"){			
 				alert("완료 되었습니다.");
 			} else{
@@ -236,7 +239,6 @@
 						<th width="20%">상품명</th>
 						<th width="7%">수량</th>
 						<th width="8%">단위</th>
-						<th width="10%">개당가격</th>
 						<th width="6%">과세여부</th>
 						<th width="6%">종류</th>
 						<th width="6%" style="display:none">작업표정렬조건</th>

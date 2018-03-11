@@ -63,18 +63,17 @@ public class SellController {
 	 * @author 이명선
 	 * @throws Exception 
 	 */
-	@ResponseBody
+	/*@ResponseBody
     @RequestMapping(value = "/sell/sellUploadExe.do", method = RequestMethod.POST)
 	public ModelAndView sellUploadExe(MultipartHttpServletRequest request)  throws Exception{		
         MultipartFile excelFile = request.getFile("excel");
-        System.out.println("엑셀 파일 업로드 컨트롤러");
        
         sellService.setSellForExcelUpload(excelFile);   
 
         ModelAndView mav = new ModelAndView();
         mav.setViewName("sellList");
         return mav;
-    }
+    }*/
 
 	/**
 	 * 판매 입력폼을 이용한 수정 및 등록
@@ -169,9 +168,24 @@ public class SellController {
 	 * @throws Exception 
 	 */
 	@RequestMapping(value = "/sell/setSellList.do")
-	public ModelAndView setSellPrice(@RequestParam Map<String, Object> pMap) throws Exception {
+	public ModelAndView setSellList(@RequestParam Map<String, Object> pMap) throws Exception {
 		ModelAndView mav = new ModelAndView("jsonView");
 		Map<String, Object> rtnMap = sellService.setSellList(pMap);
+		
+		mav.addObject("result", rtnMap); 
+		return mav;
+	}
+	
+	/**
+	 * 판매 내역 조회에서 삭제
+	 * @since 2018.03.11
+	 * @author 이명선
+	 * @throws Exception 
+	 */
+	@RequestMapping(value = "/sell/delSellList.do")
+	public ModelAndView delSellList(@RequestParam Map<String, Object> pMap) throws Exception {
+		ModelAndView mav = new ModelAndView("jsonView");
+		Map<String, Object> rtnMap = sellService.delSellList(pMap);
 		
 		mav.addObject("result", rtnMap); 
 		return mav;

@@ -13,19 +13,20 @@
 				 SELECT a.sell_dt
 				 		, a.cust_no
 						, c.cust_nm
+						, c.branch_nm
 						, d.prod_nm
 						, a.sell_quan
 						, a.unit
 						, e.unit_nm
 						, d.tax_yn
-						, b.prod_price
-						, CASE WHEN d.tax_yn = 'N' THEN CAST(TRUNCATE(a.sell_quan * b.prod_price, 2) AS double)
+						, IFNULL(b.prod_price, f.prod_price) AS prod_price
+						, CASE WHEN d.tax_yn = 'N' THEN CAST(TRUNCATE(a.sell_quan * IFNULL(b.prod_price, f.prod_price), 2) AS double)
 							   ELSE NULL
 						   END tax_free /*면세*/
-						, CASE WHEN d.tax_yn = 'Y' THEN CAST(TRUNCATE( (a.sell_quan * b.prod_price) / 1.1, 2) AS double)
+						, CASE WHEN d.tax_yn = 'Y' THEN CAST(TRUNCATE( (a.sell_quan * IFNULL(b.prod_price, f.prod_price)) / 1.1, 2) AS double)
 							   ELSE NULL
 						   END supply /*공급가액*/
-						, CASE WHEN d.tax_yn = 'Y' THEN CAST(TRUNCATE(( (a.sell_quan * b.prod_price) / 1.1) /10, 2) AS double)
+						, CASE WHEN d.tax_yn = 'Y' THEN CAST(TRUNCATE(( (a.sell_quan * IFNULL(b.prod_price, f.prod_price)) / 1.1) /10, 2) AS double)
 							   ELSE NULL
 						   END tax /*부가세*/
 						, a.sell_quan * b.prod_price AS total_price /*계*/
@@ -35,6 +36,7 @@
 				  FROM sell a LEFT JOIN product_price  b
 									 ON a.cust_no = b.cust_no
 								    AND a.prod_no = b.prod_no
+								    AND a.unit = b.unit
 								    AND a.sell_dt BETWEEN b.start_dt AND b.end_dt
 				  			  	   JOIN customer c
 									 ON a.cust_no = c.cust_no
@@ -42,17 +44,23 @@
 								 	 ON a.prod_no = d.prod_no
 							  LEFT JOIN unit e
 								     ON a.unit = e.unit
+							  LEFT JOIN com_product_price f
+							         ON a.prod_no = f.prod_no
+							        AND a.unit = f.unit
+								    AND a.sell_dt BETWEEN f.start_dt AND f.end_dt
 						, (SELECT @rownum:=0) TMP
 				 WHERE a.cust_no = #{cust_no}
 				   AND a.sell_dt BETWEEN DATE_FORMAT(#{fromSellDt},'%Y%m%d') AND DATE_FORMAT(#{toSellDt},'%Y%m%d')  
 			<choose>
 				<when test="sellType != null and sellType == 'exclude'">
 				   /*미입 교환 제외 교환은 무조건 작업표에만 포함시킴*/
-				   AND (a.sell_type = '' OR a.sell_type IS NULL)
+				   --AND (a.sell_type = '' OR a.sell_type IS NULL)
+				   AND IFNULL(a.sell_type, '') = ''
 				</when>
 				<when test="sellType != null and sellType == 'include'">
 				   /*미입포함 교환 제외 교환은 무조건 작업표에만 포함시킴*/
-			   	   AND (a.sell_type != 'E' OR a.sell_type IS NULL)
+			   	   --AND (a.sell_type != 'E' OR a.sell_type IS NULL)
+			   	   AND IFNULL(a.sell_type, '') != 'E'
 				</when>
 			 	<otherwise>
 			 	   
@@ -66,28 +74,30 @@
 				 SELECT f.return_dt AS sell_dt
 				 		, a.cust_no
 						, c.cust_nm
+						, c.branch_nm
 						, d.prod_nm
 						, (f.return_quan * -1) AS sell_quan
 						, a.unit
 						, e.unit_nm
 						, d.tax_yn
-						, b.prod_price
-						, CASE WHEN d.tax_yn = 'N' THEN CAST(TRUNCATE((f.return_quan * b.prod_price), 2) * -1 AS double)
+						, IFNULL(b.prod_price, g.prod_price) AS prod_price
+						, CASE WHEN d.tax_yn = 'N' THEN CAST(TRUNCATE((f.return_quan * IFNULL(b.prod_price, g.prod_price)), 2) * -1 AS double)
 							   ELSE NULL
 						   END tax_free /*면세*/
-						, CASE WHEN d.tax_yn = 'Y' THEN CAST(TRUNCATE((f.return_quan * b.prod_price) / 1.1, 2) * -1 AS double)
+						, CASE WHEN d.tax_yn = 'Y' THEN CAST(TRUNCATE((f.return_quan * IFNULL(b.prod_price, g.prod_price)) / 1.1, 2) * -1 AS double)
 							   ELSE NULL
 						   END supply /*공급가액*/
-						, CASE WHEN d.tax_yn = 'Y' THEN CAST(TRUNCATE(((f.return_quan * b.prod_price) / 1.1) /10, 2) * -1 AS double)
+						, CASE WHEN d.tax_yn = 'Y' THEN CAST(TRUNCATE(((f.return_quan * IFNULL(b.prod_price, g.prod_price)) / 1.1) /10, 2) * -1 AS double)
 							   ELSE NULL
 						   END tax /*부가세*/
-						, (f.return_quan * b.prod_price) * -1	AS total_price /*계*/
+						, (f.return_quan * IFNULL(b.prod_price, g.prod_price)) * -1	AS total_price /*계*/
 						, d.prod_typ
 						, 'R' AS gb /*반품구분*/
 						, f.sell_dt AS return_date
 				  FROM sell a LEFT JOIN product_price  b
 									 ON a.cust_no = b.cust_no
 								    AND a.prod_no = b.prod_no
+								    AND a.unit = b.unit
 								    AND a.sell_dt BETWEEN b.start_dt AND b.end_dt
 				  			  	   JOIN customer c
 									 ON a.cust_no = c.cust_no
@@ -98,7 +108,11 @@
 						           JOIN sell_return f
 						     		 ON a.cust_no = f.cust_no
 						     		AND a.sell_dt = f.sell_dt
-						     		AND a.sell_seq = f.sell_seq				     		
+						     		AND a.sell_seq = f.sell_seq	
+						      LEFT JOIN com_product_price g
+							         ON a.prod_no = g.prod_no
+							        AND a.unit = g.unit
+								    AND a.sell_dt BETWEEN g.start_dt AND g.end_dt				     		
 						, (SELECT @rownum:=0) TMP
 				 WHERE a.cust_no = #{cust_no}
 				   AND f.return_dt BETWEEN DATE_FORMAT(#{fromSellDt},'%Y%m%d') AND DATE_FORMAT(#{toSellDt},'%Y%m%d')
@@ -197,10 +211,11 @@
 				 /* 판매내역 */
 				 SELECT a.sell_dt
 						, d.prod_nm						
-						, a.sell_quan * b.prod_price AS total_price /*계*/
-				  FROM sell a LEFT JOIN product_price  b
+						, (a.sell_quan * IFNULL(b.prod_price, f.prod_price)) AS total_price /*계*/
+				  FROM sell a LEFT JOIN product_price b
 									 ON a.cust_no = b.cust_no
 								    AND a.prod_no = b.prod_no
+								    AND a.unit = b.unit
 								    AND a.sell_dt BETWEEN b.start_dt AND b.end_dt
 				  			  	   JOIN customer c
 									 ON a.cust_no = c.cust_no
@@ -208,6 +223,10 @@
 								 	 ON a.prod_no = d.prod_no
 							  LEFT JOIN unit e
 								     ON a.unit = e.unit
+							  LEFT JOIN com_product_price f
+							         ON a.prod_no = f.prod_no
+							        AND a.unit = f.unit
+								    AND a.sell_dt BETWEEN f.start_dt AND f.end_dt
 				 WHERE a.cust_no = #{cust_no}
 				   AND a.sell_dt BETWEEN DATE_FORMAT(#{fromSellDt},'%Y%m%d') AND DATE_FORMAT(#{toSellDt},'%Y%m%d')  
 			   <if test="sReceiptLv != null and sReceiptLv eq '2'.toString()">	   	  
@@ -217,10 +236,11 @@
 				 /* 반품내역 */
 				 SELECT f.return_dt AS sell_dt
 						, d.prod_nm						
-						, (f.return_quan * b.prod_price) * -1	AS total_price /*계*/
-				  FROM sell a LEFT JOIN product_price  b
+						, (f.return_quan * IFNULL(b.prod_price, g.prod_price)) * -1	AS total_price /*계*/
+				  FROM sell a LEFT JOIN product_price b
 									 ON a.cust_no = b.cust_no
 								    AND a.prod_no = b.prod_no
+								    AND a.unit = b.unit
 								    AND a.sell_dt BETWEEN b.start_dt AND b.end_dt
 				  			  	   JOIN customer c
 									 ON a.cust_no = c.cust_no
@@ -231,7 +251,11 @@
 						           JOIN sell_return f
 						     		 ON a.cust_no = f.cust_no
 						     		AND a.sell_dt = f.sell_dt
-						     		AND a.sell_seq = f.sell_seq				     		
+						     		AND a.sell_seq = f.sell_seq	
+						      LEFT JOIN com_product_price g
+							         ON a.prod_no = g.prod_no
+							        AND a.unit = g.unit
+								    AND a.sell_dt BETWEEN g.start_dt AND g.end_dt				     		
 				 WHERE a.cust_no = #{cust_no}
 				   AND f.return_dt BETWEEN DATE_FORMAT(#{fromSellDt},'%Y%m%d') AND DATE_FORMAT(#{toSellDt},'%Y%m%d')
 			   <if test="sReceiptLv != null and sReceiptLv eq '2'.toString()">
@@ -257,13 +281,14 @@
 						, a.unit
 						, e.unit_nm
 						, d.tax_yn
-						, b.prod_price
+						, IFNULL(b.prod_price, f.prod_price) AS prod_price
 						, d.prod_typ
 						, (a.sell_quan * b.prod_price) AS price
 						, '' AS gb /*반품구분*/
-				  FROM sell a LEFT JOIN product_price  b
+				  FROM sell a LEFT JOIN product_price b
 									 ON a.cust_no = b.cust_no
 								    AND a.prod_no = b.prod_no
+								    AND a.unit = b.unit
 								    AND a.sell_dt BETWEEN b.start_dt AND b.end_dt
 				  			  	   JOIN customer c
 									 ON a.cust_no = c.cust_no
@@ -271,6 +296,10 @@
 								 	 ON a.prod_no = d.prod_no
 							  LEFT JOIN unit e
 								     ON a.unit = e.unit
+							  LEFT JOIN com_product_price f
+							         ON a.prod_no = f.prod_no
+							        AND a.unit = f.unit
+								    AND a.sell_dt BETWEEN f.start_dt AND f.end_dt
 				 WHERE a.cust_no = #{cust_no}
 				   AND a.sell_dt = DATE_FORMAT(DATE_ADD(DATE_FORMAT(#{fromSellDt},'%Y%m%d'), INTERVAL -1 DAY), '%Y%m%d') 
 				 UNION
@@ -286,13 +315,14 @@
 						, a.unit
 						, e.unit_nm
 						, d.tax_yn
-						, b.prod_price
+						, IFNULL(b.prod_price, g.prod_price) AS prod_price
 						, d.prod_typ
 						, (f.return_quan * b.prod_price) AS price
 						, 'R' AS gb /*반품구분*/
-				  FROM sell a LEFT JOIN product_price  b
+				  FROM sell a LEFT JOIN product_price b
 									 ON a.cust_no = b.cust_no
 								    AND a.prod_no = b.prod_no
+								    AND a.unit = b.unit
 								    AND a.sell_dt BETWEEN b.start_dt AND b.end_dt
 				  			  	   JOIN customer c
 									 ON a.cust_no = c.cust_no
@@ -303,7 +333,11 @@
 						           JOIN sell_return f
 						     		 ON a.cust_no = f.cust_no
 						     		AND a.sell_dt = f.sell_dt
-						     		AND a.sell_seq = f.sell_seq				     		
+						     		AND a.sell_seq = f.sell_seq		
+						      LEFT JOIN com_product_price g
+							         ON a.prod_no = g.prod_no
+							        AND a.unit = g.unit
+								    AND a.sell_dt BETWEEN g.start_dt AND g.end_dt		     		
 				 WHERE a.cust_no = #{cust_no}
 				   AND f.return_dt = DATE_FORMAT(DATE_ADD(DATE_FORMAT(#{fromSellDt},'%Y%m%d'), INTERVAL -1 DAY), '%Y%m%d') 
 			) k
@@ -317,4 +351,65 @@
 		   AND a.sell_dt BETWEEN DATE_FORMAT(#{fromSellDt},'%Y%m%d') AND DATE_FORMAT(#{toSellDt},'%Y%m%d')
 		   AND a.sell_type = 'N'  			
     </select>
+    
+    <insert id="setProductPrice" parameterType="hashmap">
+		INSERT INTO product_price (start_dt
+									, cust_no
+									, prod_no
+									, prod_seq
+									, prod_price
+									, unit
+									, end_dt
+									) 
+				VALUES
+						( #{sell_dt}
+						, #{cust_no}
+						, (SELECT prod_no FROM product WHERE prod_nm = #{prod_nm})
+						, #{next_prod_seq}
+						, #{prod_price}
+						, (SELECT unit FROM unit WHERE unit_nm = #{unit_nm})
+						, '99991231'
+						)
+    </insert>
+    
+    <update id="setProductPriceEndDt" parameterType="hashmap">	
+		UPDATE product_price
+		   SET end_dt = DATE_FORMAT(DATE_ADD(#{sell_dt}, INTERVAL -1 DAY),'%Y%m%d')
+		 WHERE cust_no = #{cust_no}
+		   AND prod_no = #{prod_no}
+		   AND prod_seq = #{prod_seq}
+		   AND unit = #{unit}
+	</update>
+	
+	<update id="setUpdProductPrice" parameterType="hashmap">	
+		UPDATE product_price
+		   SET prod_price = #{prod_price}
+		 WHERE cust_no = #{cust_no}
+		   AND prod_no = #{prod_no}
+		   AND prod_seq = #{prod_seq}
+		   AND unit = #{unit}
+	</update>
+	
+	<select id="getProductPriceInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT cust_no
+			   , prod_no
+			   , prod_price
+			   , unit
+			   , start_dt
+			   , prod_seq
+			   , prod_seq + 1 AS next_prod_seq
+		  FROM product_price
+		 WHERE cust_no = 
+		 				<choose>
+							<when test="branch_nm != null and branch_nm != ''">
+						   		 (SELECT cust_no FROM customer WHERE (cust_nm = #{cust_nm} OR cust_al = #{cust_nm}) AND branch_nm = #{branch_nm})		  
+						 	</when>
+						 	<otherwise>
+								 (SELECT cust_no FROM customer WHERE (cust_nm = #{cust_nm} OR cust_al = #{cust_nm}) AND (branch_nm IS NULL OR branch_nm = '') )
+						 	</otherwise>
+						</choose>
+		   AND prod_no = (SELECT prod_no FROM product WHERE prod_nm = #{prod_nm})
+		   AND unit = (SELECT unit FROM unit WHERE unit_nm = #{unit_nm})
+		   AND end_dt = '99991231'
+	</select>
 </mapper>

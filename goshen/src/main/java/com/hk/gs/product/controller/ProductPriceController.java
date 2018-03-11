@@ -120,4 +120,45 @@ public class ProductPriceController {
 		mav.addObject("result", rtnMap); 
 		return mav;
 	}
+	
+	/**
+	 * 공통 단가표 목록 화면
+	 * @since 2018.03.04
+	 * @author 이명선
+	 * @throws Exception 
+	 */
+	@RequestMapping(value = "/product/comProductPriceListPage.do")
+	public String comProductPriceListPage(Model model, @RequestParam Map<String, Object> pMap) {
+		return "comProductPriceList";
+	}
+	
+
+	/**
+	 * 공통 단가표 목록
+	 * @since 2018.03.04
+	 * @author 이명선
+	 * @throws Exception 
+	 */
+	@RequestMapping(value = "/product/comProductPriceList.do")
+	public ModelAndView comProductPriceList(Model model, @RequestParam Map<String, Object> pMap) throws Exception {
+		ModelAndView mav = new ModelAndView("jsonView");
+		List<HashMap<String, Object>> previewList = productPriceService.comProductPriceList(pMap);		
+		mav.addObject("list", previewList);
+        return mav;
+	}
+	
+	/**
+	 * 공통 단가표 추가
+	 * @since 2018.03.05
+	 * @author 이명선
+	 * @throws Exception 
+	 */
+	@RequestMapping(value = "/product/setComProductPrice.do")
+	public ModelAndView setComProductPrice(@RequestParam Map<String, Object> pMap) throws Exception {
+		ModelAndView mav = new ModelAndView("jsonView");
+		Map<String, Object> rtnMap = productPriceService.setComProductPrice(pMap);
+		
+		mav.addObject("result", rtnMap); 
+		return mav;
+	}
 }

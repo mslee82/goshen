@@ -26,6 +26,10 @@
 				buttonImageOnly: true,	
 				defaultDate: "+0d",
 			    changeMonth: true,
+				dayNames: ['일', '월', '화', '수', '목', '금', '토'],
+             	dayNamesMin: ['일', '월', '화', '수', '목', '금', '토'], 
+             	monthNamesShort: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
+             	monthNames: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
 			    changeYear: true,
 			    numberOfMonths: 1,
 			    onClose: function( selectedDate ) {}
@@ -41,8 +45,7 @@
 			//삭제 버튼 이벤트
 			$("#btnDel").on("click", function(){
 				if(confirm("삭제 하시겠습니까?")){
-					//fnSetSellReturn();
-					alert("아직 안됐슴돠!");
+					fnDelSellList();				
 				}
 			});
 			
@@ -59,21 +62,6 @@
 					fnSetSellReturn();
 				}
 			});
-			
-			//판매가 수정
-			$("#btnPriceMod").on("click", function(){
-				if(confirm("판매가 수정 하시겠습니까?")){
-					fnSetSellPrice();
-				}
-			});
-			
-			//교환
-			$("#btnChange").on("click", function(){
-				if(confirm("교환 하시겠습니까?")){
-					alert("아직 안됐슴돠!");
-				}
-			});
-			
 			
 			//그리드 선택
 			$(document).on("click", "#board_list > tbody > tr > td", function(event){
@@ -141,8 +129,8 @@
 				dataList += '<td name="listProdNm">' + gfn_nvl(val.prod_nm) 	+ '</td>';		//상품
 				dataList += '<td name="listSellQuan">' + gfn_nvl(val.sell_quan) + '(<input name="returnQuan" class="return_unit" value="'+ gfn_nvl(val.return_quan) +'"/>)</td>';		//수량
 				dataList += '<td name="listUnitNm">' + gfn_nvl(val.unit_nm) 	+ '</td>';		//단위
-				dataList += '<td name="listTaxFree"><input name="taxFree" class="price" value="' + gfn_nvl(val.tax_free) 	+ '"/></td>';	//면세
-				dataList += '<td name="listSupply"><input name="taxable" class="price" value="' + gfn_nvl(val.supply) 		+ '"/></td>';	//과세
+				dataList += '<td name="listTaxFree">' + gfn_nvl(val.tax_free) 	+ '</td>';	//면세
+				dataList += '<td name="listSupply">' + gfn_nvl(val.supply) 		+ '</td>';	//과세
 				dataList += '<td name="listTax">' 	 + gfn_nvl(val.tax) 		+ '</td>';		//부가세
 				dataList += '<td name="listTotalPrice">' + gfn_nvl(val.total_price) + '</td>';	//계
 				dataList += '<td name="listSellCustNo" style="display:none">' + gfn_nvl(val.cust_no) + '</td>';		//고객번호		
@@ -237,49 +225,6 @@
 		}
 		
 		/**
-		 * 판매가 수정
-		 */
-		function fnSetSellPrice() {
-			var arrChecked = [];
-			var vJsonParam = "";
-			var chkCnt = 0;
-			
-			//선택된 반품 항목을 array에 담아 전달
-			$(".block_list table tbody .active").each(function (i) {			
-				vJsonParam = { "sell_dt" : this.children.listSellDt.textContent
-						  		, "cust_no" : this.children.listSellCustNo.textContent
-						  		, "sell_seq" : this.children.listSellSeq.textContent
-						  		, "taxFree" : this.children.listSellQuan.children.taxFree.value
-						  		, "taxable" : this.children.listSellQuan.children.taxable.value
-				}				
-				arrChecked.push(vJsonParam);
-				chkCnt++;
-			});
-			
-			//전달된 파라미터는 CommUtil.json2List 기능을 통해 List Object로 전환해서 사용한다. 
-			var vJsonString = arrChecked;
-			
-			commonAjax.clearParam(); 
-			commonAjax.setUrl("<c:url value='/sell/setSellPrice.do' />");
-			commonAjax.setDataType("json");
-			commonAjax.setJsonParam(vJsonString);
-			commonAjax.setCallback("fnSetSellPriceCallback");
-			commonAjax.ajax();	
-		}
-		
-		/**
-		 * 판매가 수정 callback
-		 */
-		function fnSetSellPriceCallback(response) {
-			if(response.result.returnMsg == ""){			
-				alert(response.result.returnCnt + " 건 판매가 수정이 완료 되었습니다.");
-			} else{
-				alert(response.result.returnMsg + " 확인이 필요합니다.");
-			}
-			fnSellList();
-		}
-		
-		/**
 		 * 판매 내용 수정 
 		 */
 		function fnSetModSellInfo() {			
@@ -308,6 +253,46 @@
 			commonSubmit.submit();
 		}
 
+		/**
+		 * 판매내역 삭제
+		 */
+		function fnDelSellList() {
+			var arrChecked = [];
+			var vJsonParam = "";
+			var chkCnt = 0;
+			
+			//선택된 반품 항목을 array에 담아 전달
+			$(".block_list table tbody .active").each(function (i) {			
+				vJsonParam = { "sell_dt" : this.children.listSellDt.textContent
+						  		, "cust_no" : this.children.listSellCustNo.textContent
+						  		, "sell_seq" : this.children.listSellSeq.textContent
+				}				
+				arrChecked.push(vJsonParam);
+				chkCnt++;
+			});
+			
+			//전달된 파라미터는 CommUtil.json2List 기능을 통해 List Object로 전환해서 사용한다. 
+			var vJsonString = arrChecked;
+			
+			commonAjax.clearParam(); 
+			commonAjax.setUrl("<c:url value='/sell/delSellList.do' />");
+			commonAjax.setDataType("json");
+			commonAjax.setJsonParam(vJsonString);
+			commonAjax.setCallback("fnDelSellListCallback");
+			commonAjax.ajax();	
+		}
+		
+		/**
+		 * 판매내역 삭제 callback
+		 */
+		function fnDelSellListCallback(response) {
+			if(response.result.returnMsg == ""){			
+				alert(response.result.returnCnt + " 건 삭제 완료 되었습니다.");
+			} else{
+				alert(response.result.returnMsg + " 확인이 필요합니다.");
+			}
+			fnSellList();
+		}
 	</script>
 </head>
 <body>
@@ -380,10 +365,8 @@
 		<div class="list_btn_group" id="btnGroup">
 			<button class="btn_default" id="btnMod">판매 내용 수정</button>	
 			<button class="btn_default" id="btnDel">판매 내용 삭제</button>			
-			<button class="btn_default" id="btnPriceMod">판매가 수정</button>
 			<button class="btn_default" id="btnReturn">반품</button>
 			<button class="btn_default" id="btnReturnCancel">반품취소</button>				
-			<button class="btn_default" id="btnChange">교환</button>
 		</div>
 	</div>
 <%@ include file="/WEB-INF/include/tailer.jspf" %>	

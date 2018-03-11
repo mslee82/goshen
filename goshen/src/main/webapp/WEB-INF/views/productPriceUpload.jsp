@@ -32,11 +32,11 @@
 			//oForm.append("excel", excel.files[0]);
 			fileUpload.setURI("<c:url value='/product/productUploadExe.do'/>");
 			fileUpload.setFormData(oForm);
-			fileUpload.setCallback(fnUploadCallBack);
+			fileUpload.setCallback(fnUploadCallback);
 			fileUpload.ajax();
 		}
 
-		function fnUploadCallBack(){
+		function fnUploadCallback(){
 			alert("끝");
 		} 
 				

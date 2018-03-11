@@ -42,7 +42,7 @@ public class SellService {
 		if(excelFile==null || excelFile.isEmpty()){
             throw new RuntimeException("엑셀파일을 선택 해 주세요.");
         }
-	        
+	    
 	    File destFile = new File("D:\\"+excelFile.getOriginalFilename());
 	    try {
 	    	excelFile.transferTo(destFile);
@@ -54,13 +54,12 @@ public class SellService {
         ExcelReadOption excelReadOption = new ExcelReadOption();
         excelReadOption.setFilePath(destFile.getAbsolutePath());
         
-        //A:일자, B:지점, C:순번, D:상품명, E:수량, F:단위, G:지점        
-        excelReadOption.setOutputColumns("A","B","C","D","E","F","G");
+        //A:일자, B:지점, C:순번, D:상품명, E:수량, F:단위, G:지점, H:작업표정렬기준        
+        excelReadOption.setOutputColumns("A","B","C","D","E","F","G","H");
         excelReadOption.setStartRow(1);        
 	        
         List<Map<String, Object>> excelContent = ExcelRead.read(excelReadOption);
         List<Map<String, Object>> returnContent = new ArrayList<Map<String, Object>>();
-        
         for(Map<String, Object> article: excelContent){
             returnContent.add(sellMapper.getSellUploadExePrev(article));
         }
@@ -73,7 +72,7 @@ public class SellService {
 	 * @author 이명선
 	 * @throws Exception 
 	 */
-	public int setSellForExcelUpload(MultipartFile excelFile) throws Exception {
+	/*public int setSellForExcelUpload(MultipartFile excelFile) throws Exception {
 		if(excelFile==null || excelFile.isEmpty()){
             throw new RuntimeException("엑셀파일을 선택 해 주세요.");
         }
@@ -106,7 +105,7 @@ public class SellService {
         reqMap.put("sellList", excelContent);
 	        
     	return sellMapper.setSellForExcelUpload(reqMap);
-    }
+    }*/
 	
 	/**
 	 * 판매 입력폼을 이용한 수정 및 등록
@@ -148,7 +147,7 @@ public class SellService {
     }
 	
 	/**
-	 * 판매가액 등록 및 수정
+	 * 판매등록
 	 * @since 2018.01.21
 	 * @author 이명선
 	 * @throws Exception 
@@ -159,10 +158,7 @@ public class SellService {
 		Map<String, Object> tempMap;
 		Map<String, Object> paramMap = new HashMap<String, Object>();
 		Map<String, Object> reqMap = new HashMap<String, Object>();
-		Map<String, Object> priceInfo = new HashMap<String, Object>();
 		int iProdCnt = 0;
-		String sInputPrice = "";
-		String sGetPrice = "";
 		List<Map<String, Object>> sellist = new ArrayList<Map<String, Object>>();
 		for (int i = 0; i < jsonData.size(); i++) {
 			tempMap = jsonData.get(i);
@@ -186,32 +182,6 @@ public class SellService {
     			//있으면 과세여부, 상품종류 수정
     			sellMapper.setProductInfoForList(paramMap);
     		}
-    		sInputPrice = paramMap.get("prod_price").toString();
-    		
-    		//단가 처리
-            priceInfo = sellMapper.getProductPriceInfo(paramMap);
-            if(null != priceInfo && null != priceInfo.get("prod_price")){
-            	sGetPrice = priceInfo.get("prod_price").toString();
-            	
-            	//단가가 있는데 금액이 다르다면  종료일을 업데이트하고 새로운 단가를 생성
-            	if(!sInputPrice.equals(sGetPrice)) {
-            		paramMap.put("next_prod_seq", priceInfo.get("next_prod_seq"));
-            		paramMap.put("cust_no", priceInfo.get("cust_no"));
-            		paramMap.put("prod_no", priceInfo.get("prod_no"));
-            		paramMap.put("prod_seq", priceInfo.get("prod_seq"));
-	            	sellMapper.setProductPriceEndDt(paramMap);	//종료일 업뎃
-	            	
-	            	sellMapper.setProductPrice(paramMap);		//새로운 단가 생성
-            	} 
-            } else {
-            	//업로드 시점에는 단가가 없을 가능성이 높기 때문에 if 처리
-            	if(!"".equals(sInputPrice)) {
-            		//없다면 새로 생성
-            		paramMap.put("next_prod_seq", "1");
-            		sellMapper.setProductPrice(paramMap);
-            	}
-            }
-           
 		}
 		
 		//목록으로 한꺼번에 판매내역 저장
@@ -219,6 +189,44 @@ public class SellService {
 	    sellMapper.setSellForExcelUpload(reqMap);
 	    
 	    rtnMap.put("returnYn", "Y");
+    	return rtnMap;
+    }
+	
+	/**
+	 * 판매 내역 조회에서 삭제
+	 * @since 2018.03.11
+	 * @author 이명선
+	 * @throws Exception 
+	 */
+	public Map<String, Object> delSellList(Map<String, Object> map) throws Exception {    		
+		List<Map<String, Object>> jsonData = CommUtil.json2List(String.valueOf(map.get("jsonData")));
+		Map<String, Object> rtnMap = new HashMap<String, Object>();
+		int iCnt = 0;
+		int iRst = 0;
+		StringBuffer strBuff = new StringBuffer();
+		Map<String, Object> tempMap;		
+		for (int i = 0; i < jsonData.size(); i++) {
+			tempMap = jsonData.get(i);
+			map.remove("sell_dt");
+			map.remove("cust_no");
+			map.remove("sell_seq");
+			
+    		map.put("sell_dt", tempMap.get("sell_dt"));
+    		map.put("cust_no", tempMap.get("cust_no"));
+    		map.put("sell_seq", tempMap.get("sell_seq"));
+    		iRst = sellMapper.delSellList(map);
+    		if(iRst >= 1){
+    			iCnt++;
+    		} else{
+    			if(strBuff.length() > 0){
+					strBuff.append(",");
+				}
+				strBuff.append(jsonData.get(i).get("sell_seq"));
+    		}
+		}
+		
+		rtnMap.put("returnCnt", iCnt);
+		rtnMap.put("returnMsg", strBuff.toString());
     	return rtnMap;
     }
 }

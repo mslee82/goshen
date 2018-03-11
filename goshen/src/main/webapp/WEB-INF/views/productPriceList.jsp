@@ -24,6 +24,10 @@
 				buttonImageOnly: true,	
 				defaultDate: "+0d",
 			    changeMonth: true,
+				dayNames: ['일', '월', '화', '수', '목', '금', '토'],
+             	dayNamesMin: ['일', '월', '화', '수', '목', '금', '토'], 
+             	monthNamesShort: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
+             	monthNames: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
 			    changeYear: true,
 			    numberOfMonths: 1,
 			    onClose: function( selectedDate ) {}
@@ -107,7 +111,8 @@
 				dataList += '<td name="listStartDt">' 	+ gfn_nvl(val.start_dt) + '</td>';			//시작일자
 				dataList += '<td name="listEndDt">' 	+ gfn_nvl(val.end_dt) 	+ '</td>';			//종료일자
 				dataList += '<td name="listProdPrice">' + gfn_nvl(val.prod_price) + '</td>';		//단가
-				dataList += '<td name="listUnit">' 		+ gfn_nvl(val.unit) 	+ '</td>';			//단위
+				dataList += '<td name="listUnitNm">' 	+ gfn_nvl(val.unit_nm) 	+ '</td>';			//단위
+				dataList += '<td name="listUnit" style="display:none">' 	+ gfn_nvl(val.unit)    + '</td>';	//단위명
 				dataList += '<td name="listCustNo" style="display:none">' 	+ gfn_nvl(val.cust_no) + '</td>';	//고객번호
 				dataList += '<td name="listProdNo" style="display:none">' 	+ gfn_nvl(val.prod_no) + '</td>';	//상품번호
 				dataList += '</tr>';
@@ -129,6 +134,7 @@
 				vJsonParam = { "cust_no" : this.children.listSellCustNo.textContent
 						  		, "prod_no" : this.children.listProdNo.textContent
 						  		, "prod_seq" : this.children.listProdSeq.textContent
+						  		, "unit" : this.children.listUnit.textContent
 				}				
 				arrChecked.push(vJsonParam);
 				chkCnt++;
@@ -213,6 +219,7 @@
 						<th width="10%">종료일자</th>
 						<th width="10%">단가</th>
 						<th width="10%">단위</th>
+						<th width="10%" style="display:none">단위명</th>
 						<th width="5%" style="display:none">고객번호</th>
 						<th width="5%" style="display:none">상품번호</th>
 					</tr>

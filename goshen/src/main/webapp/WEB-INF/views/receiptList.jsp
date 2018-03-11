@@ -22,6 +22,10 @@
 				buttonImageOnly: true,	
 				defaultDate: "+0d",
 			    changeMonth: true,
+				dayNames: ['일', '월', '화', '수', '목', '금', '토'],
+             	dayNamesMin: ['일', '월', '화', '수', '목', '금', '토'], 
+             	monthNamesShort: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
+             	monthNames: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
 			    changeYear: true,
 			    numberOfMonths: 1,
 			    onClose: function( selectedDate ) {}
@@ -32,6 +36,10 @@
 				buttonImageOnly: true,	
 				defaultDate: "+0d",
 			    changeMonth: true,
+				dayNames: ['일', '월', '화', '수', '목', '금', '토'],
+             	dayNamesMin: ['일', '월', '화', '수', '목', '금', '토'], 
+             	monthNamesShort: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
+             	monthNames: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
 			    changeYear: true,
 			    numberOfMonths: 1,
 			    onClose: function( selectedDate ) {}
@@ -91,7 +99,6 @@
 				dataList += '<td name="listSellDt">' + gfn_nvl(val.sell_dt) 	+ '</td>';		//판매일자
 				dataList += '<td name="listCustNm">' + gfn_nvl(val.cust_nm) 	+ '</td>';		//고객명
 				dataList += '<td name="listBranchNm">' + gfn_nvl(val.branch_nm) + '</td>';		//지점명
-				dataList += '<td name="listSellSeq">' + gfn_nvl(val.sell_seq) 	+ '</td>';		//일련번호
 				dataList += '<td name="listProdNm"><input type="text" id="prodNm" list="prodList" autocomplete="on" maxlength="50" value="' + gfn_nvl(val.prod_nm) 	+ '"><datalist id="prodList"></datalist></td>';		//상품
 				dataList += '<td name="listSellQuan"><input type="text" class="price" id="sellQuan" value="' + gfn_nvl(val.sell_quan) + '" /></td>';		//수량
 				dataList += '<td name="listUnitNm"><input type="text" class="unit" id="unitNm" list="unitList" autocomplete="on" maxlength="5" value="' + gfn_nvl(val.unit_nm) 	+ '"><datalist id="unitList"></datalist></td>';		//단위
@@ -155,7 +162,6 @@
 				vJsonParam = { "sell_dt" : this.children.listSellDt.textContent							//판매일자
 								, "cust_nm" : this.children.listCustNm.textContent	
 								, "cust_no" : this.children.listSellCustNo.textContent					//고객명
-						  		, "sell_seq" : this.children.listSellSeq.textContent					//일련번호
 						  		, "return_seq" : this.children.listReturnSeq.textContent				//반품일련번호
 						  		, "prod_nm" : this.children.listProdNm.children.prodNm.value			//상품명
 						  		, "sell_quan" : this.children.listSellQuan.children.sellQuan.value		//판매수량
@@ -179,7 +185,7 @@
 			commonAjax.ajax();	
 		}
 		
-		function fnSellSaveCallBack(response){
+		function fnSellSaveCallback(response){
 			alert("등록 완료");
 		} 
 		
@@ -294,15 +300,14 @@
 				<thead>
 					<tr>
 						<th width="5%"></th>
-						<th width="5%">판매<br/>일자</th>
-						<th width="14%">고객명</th>
-						<th width="14%">지점명</th>					
-						<th width="5%">일련<br>번호</th>
+						<th width="7%">판매일자</th>
+						<th width="15%">고객명</th>
+						<th width="10%">지점명</th>					
 						<th width="20%">상품명</th>
 						<th width="7%">수량</th>
 						<th width="8%">단위</th>
 						<th width="10%">개당가격</th>
-						<th width="6%">과세<br/>여부</th>
+						<th width="6%">과세여부</th>
 						<th width="6%">종류</th>
 					</tr>
 				</thead>
@@ -311,11 +316,8 @@
 				</tbody>
 			</table>
 		</div>
-		<div class="list_btn_group" id="btnGroup">
-			<button class="btn_default" id="btnMod">판매 내용 수정</button>	
-			<button class="btn_default" id="btnDel">판매 내용 삭제</button>		
+		<div class="list_btn_group" id="btnGroup">					
 			<button class="btn_default" id="btnPriceMod">판매가 수정</button>
-			<button class="btn_default" id="btnReturnCancel">반품취소</button>				
 		</div>
 	</div>
 <%@ include file="/WEB-INF/include/tailer.jspf" %>	

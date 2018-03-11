@@ -116,7 +116,7 @@ public class ReceiptService {
 			paramMap.put("tax_yn", tempMap.get("tax_yn"));
     		
 			paramMap.put("cust_no", tempMap.get("cust_no"));
-			paramMap.put("sell_seq", tempMap.get("sell_seq"));
+			//paramMap.put("sell_seq", tempMap.get("sell_seq"));
 			paramMap.put("sell_dt", tempMap.get("sell_dt"));
 			paramMap.put("sell_quan", tempMap.get("sell_quan"));
 			paramMap.put("return_seq", tempMap.get("return_seq"));
@@ -134,31 +134,36 @@ public class ReceiptService {
     		sInputPrice = paramMap.get("prod_price").toString();
     		
     		//단가 처리
-            priceInfo = sellMapper.getProductPriceInfo(paramMap);
-            if(null != priceInfo && null != priceInfo.get("prod_price")){
-            	sGetPrice = priceInfo.get("prod_price").toString();
-            	
-            	//단가가 있는데 금액이 다르다면  종료일을 업데이트하고 새로운 단가를 생성
-            	if(!sInputPrice.equals(sGetPrice)) {
-            		paramMap.put("next_prod_seq", priceInfo.get("next_prod_seq"));
-            		paramMap.put("cust_no", priceInfo.get("cust_no"));
-            		paramMap.put("prod_no", priceInfo.get("prod_no"));
-            		paramMap.put("prod_seq", priceInfo.get("prod_seq"));
-	            	sellMapper.setProductPriceEndDt(paramMap);	//종료일 업뎃
+    		if(null != sInputPrice && !"".equals(sInputPrice)) {
+	            priceInfo = receiptMapper.getProductPriceInfo(paramMap);
+	            if(null != priceInfo && null != priceInfo.get("prod_price")){
+	            	sGetPrice = priceInfo.get("prod_price").toString();
 	            	
-	            	sellMapper.setProductPrice(paramMap);		//새로운 단가 생성
-            	} 
-            } else {            	
-            	//없다면 새로 생성
-            	paramMap.put("next_prod_seq", "1");
-            	sellMapper.setProductPrice(paramMap);
-            }
-           
-            //판매내역 수정
-            sellMapper.setUpdSellForList(paramMap);
-            
-            //반품내역 수정
-            sellReturnMapper.setUpdSellReturn(paramMap);
+	            	//단가가 있는데 금액이 다르다면  종료일을 업데이트하고 새로운 단가를 생성
+	            	if(!sInputPrice.equals(sGetPrice)) {
+	            		if(paramMap.get("sell_dt").equals(priceInfo.get("start_dt"))) {
+	            			//sell_dt가 동일하면 가격만 업데이트
+	            			paramMap.put("prod_no", priceInfo.get("prod_no"));
+		            		paramMap.put("prod_seq", priceInfo.get("prod_seq"));
+		            		paramMap.put("unit", priceInfo.get("unit"));
+	            			receiptMapper.setUpdProductPrice(paramMap);
+	            		} else {
+		            		paramMap.put("next_prod_seq", priceInfo.get("next_prod_seq"));
+		            		paramMap.put("cust_no", priceInfo.get("cust_no"));
+		            		paramMap.put("prod_no", priceInfo.get("prod_no"));
+		            		paramMap.put("prod_seq", priceInfo.get("prod_seq"));
+		            		paramMap.put("unit", priceInfo.get("unit"));
+		            		receiptMapper.setProductPriceEndDt(paramMap);	//종료일 업뎃
+			            	
+			            	receiptMapper.setProductPrice(paramMap);		//새로운 단가 생성
+	            		}
+	            	} 
+	            } else {            	
+	            	//없다면 새로 생성
+	            	paramMap.put("next_prod_seq", "1");
+	            	receiptMapper.setProductPrice(paramMap);
+	            }
+    		}
 		}
     	return rtnMap;
     }

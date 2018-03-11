@@ -12,4 +12,8 @@ public interface ReceiptMapper {
 	public List<HashMap<String, Object>> getSellDtListForBranch(Map<String, Object> map) throws Exception;
 	public Map<String, Object> getSellTotalPrice(Map<String, Object> map) throws Exception;
 	public Map<String, Object> getCheckSellType(Map<String, Object> map) throws Exception;
+	public int setProductPrice(Map<String, Object> map) throws Exception;
+	public int setProductPriceEndDt(Map<String, Object> map) throws Exception;
+	public int setUpdProductPrice(Map<String, Object> map) throws Exception;
+	public Map<String, Object> getProductPriceInfo(Map<String, Object> map) throws Exception;
 }

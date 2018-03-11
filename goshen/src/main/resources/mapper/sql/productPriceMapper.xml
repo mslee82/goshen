@@ -3,6 +3,7 @@
 <mapper namespace="com.hk.gs.product.mapper.ProductPriceMapper">
 
 	<select id="getProductPriceUploadInfo" parameterType="hashmap" resultType="hashmap">
+		/* 단가표 엑셀업로드 	사용하지 않아 삭제 예정
 		SELECT cust_no
 			  , prod_no
 			  , prod_seq
@@ -10,18 +11,24 @@
 		  FROM product_price
 		 WHERE cust_no = (SELECT cust_no FROM customer WHERE cust_nm = #{B})
 		   AND prod_no = (SELECT prod_no FROM product WHERE prod_nm = #{C})
+		   AND unit = (SELECT unit FROM unit WHERE unit_nm = #{D})
 		   AND end_dt = '99991231'
+		 */
 	</select>
 	
-	<update id="setProductPriceEndDt" parameterType="hashmap">	
+	<update id="setProductPriceEndDt" parameterType="hashmap">
+		/* 단가표 엑셀업로드 	사용하지 않아 삭제 예정
 		UPDATE product_price
 		   SET end_dt = DATE_FORMAT(DATE(#{A}-1),'%Y%m%d')
 		 WHERE cust_no = #{cust_no}
 		   AND prod_no = #{prod_no}
 		   AND prod_seq = #{prod_seq}
+		   AND unit = #{unit}
+		*/
 	</update>
 	
     <insert id="setProductPriceForExcelUpload" parameterType="hashmap">
+    /*단가표 엑셀업로드 	사용하지 않아 삭제 예정
 		INSERT INTO product_price (start_dt
 									, cust_no
 									, prod_no
@@ -37,6 +44,7 @@
 						, #{D}
 						, '99991231'
 						)
+	*/
     </insert>
     
     <select id="getProductPriceList" parameterType="hashmap" resultType="hashmap">
@@ -48,10 +56,14 @@
 					, a.start_dt
 					, a.end_dt
 					, a.prod_price
+					, a.unit
+					, d.unit_nm
 			  FROM product_price a JOIN customer b
 			                         ON a.cust_no = b.cust_no
 			  					   JOIN product c
 			  						 ON a.prod_no = c.prod_no
+			  					   JOIN unit d
+			  					     ON a.unit = d.unit
 			 WHERE 1=1			   
 		 <if test="srch_dt != null and srch_dt != ''">
 		   	   AND DATE_FORMAT(DATE(#{srch_dt}),'%Y%m%d') BETWEEN a.start_dt AND a.end_dt
@@ -69,6 +81,7 @@
 		 WHERE cust_no = #{cust_no}
 		   AND prod_no = #{prod_no}
 		   AND prod_seq = #{prod_seq}
+		   AND unit = #{unit}
     </delete>
     
     <update id="setUpdProductPriceEndDtRollBack" parameterType="hashmap">	
@@ -80,7 +93,9 @@
 						      FROM product_price
 							 WHERE cust_no = #{cust_no}
 		   				       AND prod_no = #{prod_no}
+		   				       AND unit = #{unit}
 						  )
+		   AND unit = #{unit}
 	</update>
 	
 	<update id="setUpdProductPriceInfo" parameterType="hashmap">	
@@ -92,5 +107,155 @@
 		 WHERE cust_no = #{cust_no}
 		   AND prod_no = #{prod_no}
 		   AND prod_seq = #{prod_seq}
+		   AND unit = #{unit}
+	</update>
+	
+	<select id="getComProductPriceList" parameterType="hashmap" resultType="hashmap">
+		/* sell_quan 실수 처리시 x.xxxxxxxxxx 식으로 결과가 나타나는 오류가 있어 아래와 같이 처리함. 무조건 double로 cast 하면 정수도 지정된 소수점 자리까지 노출되서 분기로 처리함 ex) 1.00 */
+	 	SELECT a.prod_no
+	 		   , b.prod_nm	
+	 		   , CASE WHEN CEIL(SUM(sell_quan)) = SUM(sell_quan) THEN SUM(sell_quan)
+	 		   		  ELSE TRUNCATE(SUM(sell_quan), 2)
+	 		   	  END sell_quan
+	 		   , a.unit
+			   , c.unit_nm
+	 	       , d.prod_price AS sell_prod_price
+	 	       , e.prod_price AS buy_prod_price
+	 	       , a.sell_dt
+		  FROM sell a JOIN product b
+		  				ON a.prod_no = b.prod_no
+		  			  JOIN unit c
+		  				ON a.unit = c.unit			  					 
+		  		 LEFT JOIN com_product_price d
+		  		 	    ON a.prod_no = d.prod_no
+		  		 	   AND a.unit = d.unit
+					   AND DATE_FORMAT(DATE(#{srch_dt}),'%Y%m%d') BETWEEN d.start_dt AND d.end_dt	
+				 LEFT JOIN buy_product_price e
+		  				ON a.prod_no = e.prod_no
+		  			   AND a.unit = e.unit
+					   AND DATE_FORMAT(DATE(#{srch_dt}),'%Y%m%d') BETWEEN e.start_dt AND e.end_dt	 								    
+	    WHERE a.sell_dt = DATE_FORMAT(DATE(#{srch_dt}),'%Y%m%d')
+	    <if test="prod_no != null and prod_no != ''">
+		  AND a.prod_no = #{prod_no}
+		</if>
+	 GROUP BY a.prod_no, a.unit, c.unit_nm, d.prod_price, e.prod_price, a.sell_dt		  
+    </select>
+    
+    <select id="getComProductPriceInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT prod_no
+			  , prod_seq
+			  , (prod_seq + 1) next_prod_seq
+			  , unit
+			  , prod_price
+			  , start_dt
+		  FROM com_product_price
+		 WHERE prod_no = #{prod_no}
+		   AND unit = #{unit}
+		   AND end_dt = '99991231'
+	</select>
+	
+	<update id="setComProductPriceEndDt" parameterType="hashmap">	
+		UPDATE com_product_price
+		   SET end_dt = DATE_FORMAT(DATE(#{sell_dt}-1),'%Y%m%d')
+		 WHERE prod_no = #{prod_no}
+		   AND prod_seq = #{prod_seq}
+		   AND unit = #{unit}
+	</update>
+	
+	<insert id="setComProductPrice" parameterType="hashmap">
+		INSERT INTO com_product_price (start_dt
+									, prod_no
+									, prod_seq
+									, prod_price
+									, unit
+									, end_dt
+									) 
+				VALUES
+						(#{sell_dt}
+						, #{prod_no}
+						, #{next_prod_seq}
+						, #{prod_price}
+						, #{unit}
+						, '99991231'
+						)
+    </insert>
+    
+    <update id="setUpdComProductPrice" parameterType="hashmap">	
+		UPDATE com_product_price
+		   SET prod_price = #{prod_price}
+		 WHERE prod_no = #{prod_no}
+		   AND prod_seq = #{prod_seq}
+		   AND unit = #{unit}
+	</update>
+	
+    <update id="setComProductPriceEndDtRollBack" parameterType="hashmap">	
+		UPDATE com_product_price
+		   SET end_dt = '99991231'
+		 WHERE prod_no = #{prod_no}
+		   AND prod_seq = ( SELECT MAX(prod_seq)
+						      FROM product_price
+							 WHERE prod_no = #{prod_no}
+		   				       AND unit = #{unit}
+						  )
+		   AND unit = #{unit}
+	</update>
+	
+    <select id="getBuyProductPriceInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT prod_no
+			  , prod_seq
+			  , (prod_seq + 1) next_prod_seq
+			  , unit
+			  , prod_price
+			  , start_dt
+		  FROM buy_product_price
+		 WHERE prod_no = #{prod_no}
+		   AND unit = #{unit}
+		   AND end_dt = '99991231'
+	</select>
+	
+	<insert id="setBuyProductPrice" parameterType="hashmap">
+		INSERT INTO buy_product_price (start_dt
+									, prod_no
+									, prod_seq
+									, prod_price
+									, unit
+									, end_dt
+									) 
+				VALUES
+						(#{sell_dt}
+						, #{prod_no}
+						, #{next_prod_seq}
+						, #{prod_price}
+						, #{unit}
+						, '99991231'
+						)
+    </insert>
+    
+    <update id="setUpdBuyProductPrice" parameterType="hashmap">	
+		UPDATE buy_product_price
+		   SET prod_price = #{prod_price}
+		 WHERE prod_no = #{prod_no}
+		   AND prod_seq = #{prod_seq}
+		   AND unit = #{unit}
+	</update>
+	
+    <update id="setBuyProductPriceEndDt" parameterType="hashmap">	
+		UPDATE buy_product_price
+		   SET end_dt = DATE_FORMAT(DATE(#{sell_dt}-1),'%Y%m%d')
+		 WHERE prod_no = #{prod_no}
+		   AND prod_seq = #{prod_seq}
+		   AND unit = #{unit}
+	</update>
+    
+    <update id="setBuyProductPriceEndDtRollBack" parameterType="hashmap">	
+		UPDATE buy_product_price
+		   SET end_dt = '99991231'
+		 WHERE prod_no = #{prod_no}
+		   AND prod_seq = ( SELECT MAX(prod_seq)
+						      FROM product_price
+							 WHERE prod_no = #{prod_no}
+		   				       AND unit = #{unit}
+						  )
+		   AND unit = #{unit}
 	</update>
 </mapper>
