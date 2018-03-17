@@ -67,6 +67,9 @@
 			
 		});
 		
+		/**
+		 * 영수증 조회
+		 */
 		function fnPreviewReceipt(){
 			//datalist 객체에서 value찾기
 			var vCustNo = $('#srchCustNo').val();
@@ -88,6 +91,9 @@
 			commonAjax.ajax();	
 		}
 		
+		/**
+		 * 영수증 조회 Callback
+		 */
 		function fnPreviewReceiptCallback(result){
 			var dataList;
 			$("#board_list tbody").empty();
