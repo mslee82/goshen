@@ -162,6 +162,9 @@ public class SellService {
 		List<Map<String, Object>> sellist = new ArrayList<Map<String, Object>>();
 		for (int i = 0; i < jsonData.size(); i++) {
 			tempMap = jsonData.get(i);
+			
+			//상품명 " 기호 replace
+			tempMap.put("prod_nm", tempMap.get("prod_nm").toString().replaceAll("&quot;", "\""));
 			sellist.add(tempMap);
 			
 			paramMap.put("prod_nm", tempMap.get("prod_nm"));

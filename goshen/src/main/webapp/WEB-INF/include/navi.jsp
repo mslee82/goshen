@@ -48,10 +48,14 @@
 						</ul>
 					</li>
 					<li>
+						<a href="#none">상품</a>
+						<ul class="lnb_2lev">
+							<li><a href="/product/productListPage.do">상품 조회</a></li>							
+						</ul>
+					</li>
+					<li>
 						<a href="#none">단가표</a>
 						<ul class="lnb_2lev">
-							<li><a href="/product/productPriceUpload.do">단가표 업로드</a></li>
-							<li><a href="/product/productPriceListPage.do">단가표 조회</a></li>
 							<li><a href="/product/comProductPriceListPage.do">공통 단가표 조회 및 저장</a></li>
 						</ul>
 					</li>

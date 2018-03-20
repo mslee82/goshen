@@ -58,6 +58,7 @@
 			$("#board_list tbody").empty();
 			var vSeq = 0;
 			var vBfCustNm = "";
+			var vProdNm = "";
 			var vCurrCustNm = "";
 			var vSelectedY = "";
 			var vSelectedN = "";
@@ -65,8 +66,7 @@
 			var vSelectedA = "";
 			var vSelectedB = "";
 			var vSelectedC = "";
-			var vSelectedD = "";
-			
+			var vSelectedD = "";			
 			var vSelectedE = "";
 			$.each(result.list, function(i, val){
 				vCurrCustNm = gfn_nvl(val.cust_nm);
@@ -94,8 +94,9 @@
 					vSelectedN = "";
 					vSelectedY = "selected";
 				}
+				vProdNm =  gfn_nvl(val.prod_nm).replace(/\"/g,"&quot;");
 				dataList += '<td name="listSellType"><select name="sellType"><option value="E"'+vSelectedE+'>교환</option><option value="N"'+vSelectedN+'>미입</option><option value=""'+vSelectedY+'></option></select></td>';	//미입/교환
-				dataList += '<td name="listProdNm"><input type="text" id="prodNm" list="prodList" autocomplete="on" maxlength="50" value="' + gfn_nvl(val.prod_nm) 	+ '"><datalist id="prodList"></datalist></td>';				//상품
+				dataList += '<td name="listProdNm"><input type="text" id="prodNm" list="prodList" autocomplete="on" maxlength="50" value="' + vProdNm + '"><datalist id="prodList"></datalist></td>';				//상품
 				dataList += '<td name="listSellQuan"><input type="text" class="price" id="sellQuan" value="' + gfn_nvl(val.sell_quan) + '" /></td>';																			//수량
 				dataList += '<td name="listUnitNm"><input type="text" class="unit" id="unitNm" list="unitList" autocomplete="on" maxlength="5" value="' + gfn_nvl(val.unit_nm) 	+ '"><datalist id="unitList"></datalist></td>';	//단위
 				
@@ -176,11 +177,11 @@
 			//목록을 array에 담아 전달
 			$(".block_list table tbody tr").each(function (i) {			
 				vJsonParam = { "sell_dt" : this.children.listSellDt.textContent							//판매일자
-						  		, "cust_nm" : this.children.listCustNm.textContent						//고객명
+						  		, "cust_nm" : encodeURIComponent(this.children.listCustNm.textContent)	//고객명
 						  		, "branch_nm" : this.children.listBranchNm.textContent					//지점명
 						  		, "sell_seq" : this.children.listSellSeq.textContent					//일련번호
 						  		, "sell_type" : this.children.listSellType.children.sellType.value		//미입/교환구분
-						  		, "prod_nm" : this.children.listProdNm.children.prodNm.value			//상품명
+						  		, "prod_nm" : encodeURIComponent(this.children.listProdNm.children.prodNm.value.replace(/\"/g,"&quot;")) //상품명
 						  		, "sell_quan" : this.children.listSellQuan.children.sellQuan.value		//판매수량
 						  		, "unit_nm" : this.children.listUnitNm.children.unitNm.value			//단위명
 						  		, "tax_yn" : this.children.listTaxYn.children.taxYn.value				//과세여부

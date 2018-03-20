@@ -27,7 +27,6 @@
 		   SET prod_nm = #{prod_nm}
 			   , prod_typ = #{prod_typ}
 			   , tax_yn = #{tax_yn}	
-			   , use_yn = #{use_yn}			
 		 WHERE prod_no = #{prod_no}
     </update>
     
@@ -48,5 +47,8 @@
 			   , tax_yn
 			   , use_yn
 		  FROM product
+		<if test="prod_no != null and prod_no != ''">
+		 WHERE prod_no = #{prod_no}
+		</if>
     </select>
 </mapper>

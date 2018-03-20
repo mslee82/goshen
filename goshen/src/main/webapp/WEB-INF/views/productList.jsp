@@ -26,7 +26,7 @@
 			//수정 버튼 이벤트
 			$("#btnMod").on("click", function(){
 				if(confirm("수정 하시겠습니까?")){
-					fnSetModProductInfo();
+					fnModProductInfo();
 				}
 			});
 			
@@ -53,8 +53,12 @@
 			var vProdVal = $('#prodList option').filter(function() {
 				return this.value == vProdNo;
 			}).data('value');
-			
-			commonAjax.setUrl("<c:url value='/sell/sellList.do'/>");
+			if(vProdNo == ""){
+				if(typeof vProdVal == "undefined" || null == vProdVal){
+					vProdVal = "";
+				} 				
+			}
+			commonAjax.setUrl("<c:url value='/product/productList.do'/>");
 			commonAjax.setDataType("json");
 			commonAjax.clearParam();
 			commonAjax.addParam("prod_no", vProdVal);
@@ -68,16 +72,56 @@
 		 */
 		function fnProductListCallback(result){
 			var dataList;
+
+			var vProdNm = "";
+			var vSelectedY = "";
+			var vSelectedN = "";
+			
+			var vSelectedA = "";
+			var vSelectedB = "";
+			var vSelectedC = "";
+			var vSelectedD = "";			
+			var vSelectedE = "";
 			$("#board_list tbody").empty();
 
 			$.each(result.list, function(i, val){
+				vProdNm =  gfn_nvl(val.prod_nm).replace(/\"/g,"&quot;");
 				dataList  = '<tr class="list_row">';
 				dataList += '<td><input type="checkbox" name="chkList"/></td>';
 				dataList += '<td name="listProdNo">' + gfn_nvl(val.prod_no) 	+ '</td>';	//상품번호
-				dataList += '<td name="listProdNm">' + gfn_nvl(val.prod_nm) 	+ '</td>';	//상품명
-				dataList += '<td name="listProdTyp">' + gfn_nvl(val.prod_typ) 	+ '</td>';	//상품구분
-				dataList += '<td name="listTaxYn">' + gfn_nvl(val.tax_yn) 	+ '</td>';		//과세여부
-				dataList += '<td name="listUseYn">' + gfn_nvl(val.use_yn) + '</td>';		//사용여부			
+				dataList += '<td name="listProdNm"><input type="text" id="prodNm" list="prodList" autocomplete="on" maxlength="50" value="' + vProdNm + '"><datalist id="prodList"></datalist></td>';				//상품
+				//과세 여부
+				if("Y" == gfn_nvl(val.tax_yn)){
+					vSelectedY = "selected";
+					vSelectedN = "";
+				} else{
+					vSelectedY = "";
+					vSelectedN = "selected";
+				}
+				dataList += '<td name="listTaxYn"><select name="taxYn"><option value="N"'+vSelectedN+'>면세</option><option value="Y"'+vSelectedY+'>과세</option></select></td>';	
+				//상품종류
+				if("A" == gfn_nvl(val.prod_typ)){
+					vSelectedA = "selected";
+					vSelectedB = "";
+					vSelectedC = "";
+					vSelectedD = "";
+				} else if("B" == gfn_nvl(val.prod_typ)){
+					vSelectedA = "";
+					vSelectedB = "selected";
+					vSelectedC = "";
+					vSelectedD = "";
+				} else if("C" == gfn_nvl(val.prod_typ)){
+					vSelectedA = "";
+					vSelectedB = "";
+					vSelectedC = "selected";
+					vSelectedD = "";
+				} else if("D" == gfn_nvl(val.prod_typ)){
+					vSelectedA = "";
+					vSelectedB = "";
+					vSelectedC = "";
+					vSelectedD = "selected";
+				}
+				dataList += '<td name="listProdTyp"><select name="prodTyp"><option value="A"'+vSelectedA+'>야채</option><option value="B"'+vSelectedB+'>공산품</option><option value="C"'+vSelectedC+'>수산</option><option value="D"'+vSelectedD+'>고기</option></select></td>';				
 				dataList += '</tr>';
 				
 				$("#board_list tbody").append(dataList);
@@ -97,33 +141,47 @@
 		/**
 		 * 수정 
 		 */
-		function fnSetModProductInfo() {			
+		function fnModProductInfo() {			
+			var arrChecked = [];
+			var vJsonParam = "";
 			var chkCnt = 0;
-			var vProdNo = "";
-
-			$(".block_list table tbody .active").each(function (i) {			
-				vProdNo = this.children.listProdNo.textContent;
+			
+			//목록을 array에 담아 전달
+			$(".block_list table tbody .active").each(function (i) {
+				vJsonParam = { "prod_no" : this.children.listProdNo.textContent							//상품번호
+								, "prod_nm" : encodeURIComponent(this.children.listProdNm.children.prodNm.value.replace(/\"/g,"&quot;")) //상품명
+						  		, "tax_yn" : this.children.listTaxYn.children.taxYn.value				//과세여부
+						  		, "prod_typ" : this.children.listProdTyp.children.prodTyp.value			//상품종류						  		
+				}				
+				arrChecked.push(vJsonParam);
 				chkCnt++;
 			});
 			
-			if(chkCnt > 1){
-				alert("한건만 선택 하세요.");
-				return;
-			}
+			//전달된 파라미터는 CommUtil.json2List 기능을 통해 List Object로 전환해서 사용한다. 
+			var vJsonString = arrChecked;
 			
-			commonSubmit.setUrl("<c:url value='/product/productModPage.do' />");
-			commonSubmit.addParam("prod_no", vProdNo);
-			commonSubmit.setMethod("post");
-			commonSubmit.submit();
+			commonAjax.clearParam(); 
+			commonAjax.setUrl("<c:url value='/product/setProductList.do' />");
+			commonAjax.setDataType("json");
+			commonAjax.setJsonParam(vJsonString);
+			commonAjax.setCallback("fnModProductInfoCallback");
+			commonAjax.ajax();	
 		}
 
+		function fnModProductInfoCallback(response) {
+			if(response.result.returnYn == "Y"){			
+				alert("완료 되었습니다.");
+			} else{
+				alert("확인이 필요합니다.");
+			}
+		} 
 	</script>
 </head>
 <body>
 <%@ include file="/WEB-INF/include/navi.jsp" %>
 	<div class="container_wrap">
 		<div class="sub_title">
-			판매 내역 조회
+			상품 조회
 		</div>
 		<div class="search_Tblock">
 			<table class="search_table">
@@ -156,10 +214,9 @@
 					<tr>
 						<th width="5%"></th>
 						<th width="10%">상품번호</th>
-						<th width="55%">상품명</th>
-						<th width="10%">상품구분</th>
-						<th width="10%">과세여부</th>
-						<th width="10%">사용여부</th>
+						<th width="65%">상품명</th>
+						<th width="6%">과세여부</th>
+						<th width="6%">상품구분</th>
 					</tr>
 				</thead>
 				<tbody>

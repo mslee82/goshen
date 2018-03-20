@@ -113,14 +113,14 @@
 				, a.unit
 				, e.unit_nm
 				, d.tax_yn
-				, CASE WHEN d.tax_yn = 'N' THEN TRUNCATE(a.sell_quan * IFNULL(b.prod_price, g.prod_price), 2)
-					   ELSE 0
-				   END tax_free /*면세*/
-				, CASE WHEN d.tax_yn = 'Y' THEN TRUNCATE((a.sell_quan * IFNULL(b.prod_price, g.prod_price)) / 1.1, 2)
-					   ELSE 0 
+				, CASE WHEN d.tax_yn = 'N' THEN CAST(TRUNCATE(a.sell_quan * IFNULL(b.prod_price, g.prod_price), 2) AS double)
+							   ELSE NULL
+						   END tax_free /*면세*/
+				, CASE WHEN d.tax_yn = 'Y' THEN CAST(TRUNCATE( (a.sell_quan * IFNULL(b.prod_price, g.prod_price)) / 1.1, 2) AS double)
+					   ELSE NULL
 				   END supply /*공급가액*/
-				, CASE WHEN d.tax_yn = 'Y' THEN TRUNCATE(((a.sell_quan * IFNULL(b.prod_price, g.prod_price)) / 1.1) /10, 2)
-					   ELSE 0
+				, CASE WHEN d.tax_yn = 'Y' THEN CAST(TRUNCATE(( (a.sell_quan * IFNULL(b.prod_price, g.prod_price)) / 1.1) /10, 2) AS double)
+					   ELSE NULL
 				   END tax /*부가세*/
 				, TRUNCATE(a.sell_quan * IFNULL(b.prod_price, g.prod_price), 2) total_price /*계*/
 				, f.return_seq

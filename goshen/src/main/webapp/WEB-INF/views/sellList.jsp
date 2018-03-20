@@ -240,6 +240,11 @@
 				chkCnt++;
 			});
 			
+			if(chkCnt == 0){
+				alert("내역을 선택 하세요.");
+				return;
+			}
+			
 			if(chkCnt > 1){
 				alert("한건만 선택 하세요.");
 				return;

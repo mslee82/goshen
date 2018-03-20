@@ -98,6 +98,17 @@
 			var dataList;
 			$("#board_list tbody").empty();
 			
+			var vProdNm = "";
+			
+			var vSelectedY = "";
+			var vSelectedN = "";
+			
+			var vSelectedA = "";
+			var vSelectedB = "";
+			var vSelectedC = "";
+			var vSelectedD = "";			
+			var vSelectedE = "";
+			
 			$.each(result.list, function(i, val){
 				
 				dataList  = '<tr class="list_row">';
@@ -105,9 +116,11 @@
 				dataList += '<td name="listSellDt">' + gfn_nvl(val.sell_dt) 	+ '</td>';		//판매일자
 				dataList += '<td name="listCustNm">' + gfn_nvl(val.cust_nm) 	+ '</td>';		//고객명
 				dataList += '<td name="listBranchNm">' + gfn_nvl(val.branch_nm) + '</td>';		//지점명
-				dataList += '<td name="listProdNm"><input type="text" id="prodNm" list="prodList" autocomplete="on" maxlength="50" value="' + gfn_nvl(val.prod_nm) 	+ '"><datalist id="prodList"></datalist></td>';		//상품
+				
+				vProdNm =  gfn_nvl(val.prod_nm).replace(/\"/g,"&quot;");
+				dataList += '<td name="listProdNm"><input type="text" id="prodNm" list="prodList" autocomplete="on" maxlength="50" value="' + gfn_nvl(vProdNm) + '"><datalist id="prodList"></datalist></td>';		//상품
 				dataList += '<td name="listSellQuan"><input type="text" class="price" id="sellQuan" value="' + gfn_nvl(val.sell_quan) + '" /></td>';		//수량
-				dataList += '<td name="listUnitNm"><input type="text" class="unit" id="unitNm" list="unitList" autocomplete="on" maxlength="5" value="' + gfn_nvl(val.unit_nm) 	+ '"><datalist id="unitList"></datalist></td>';		//단위
+				dataList += '<td name="listUnitNm"><input type="text" class="unit" id="unitNm" list="unitList" autocomplete="on" maxlength="5" value="' + gfn_nvl(val.unit_nm) + '"><datalist id="unitList"></datalist></td>';		//단위
 				dataList += '<td name="listProdPrice"><input type="text" name="prodPrice" class="price" value="' + gfn_nvl(val.prod_price) + '"/></td>';	//가격
 				
 				//과세 여부
@@ -118,7 +131,7 @@
 					vSelectedY = "";
 					vSelectedN = "selected";
 				}
-				dataList += '<td name="listTaxYn"><select name="taxYn"><option value="N"'+vSelectedN+'>면세</option><option value="Y"'+vSelectedY+'>과세</option></select></td>';	
+				dataList += '<td name="listTaxYn"><select name="taxYn"><option value="N" '+vSelectedN+'>면세</option><option value="Y" '+vSelectedY+'>과세</option></select></td>';	
 				
 				//상품종류
 				if("A" == gfn_nvl(val.prod_typ)){

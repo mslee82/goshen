@@ -1,7 +1,6 @@
 package com.hk.gs.receipt.controller;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,9 +20,6 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.hk.gs.receipt.service.ReceiptService;
 import com.hk.gs.util.MakeExcel;
-
-import net.sf.jasperreports.engine.JRDataSource;
-import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 
 /**
  * Handles requests for the application home page.

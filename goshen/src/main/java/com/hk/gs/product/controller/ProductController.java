@@ -113,4 +113,19 @@ public class ProductController {
 		mav.addObject("list", productList); 
 		return mav;
 	}
+	
+	/**
+	 * 상품 목록에서 수정
+	 * @since 2018.03.20
+	 * @author 이명선
+	 * @throws Exception 
+	 */
+	@RequestMapping(value = "/product/setProductList.do")
+	public ModelAndView setProductList(@RequestParam Map<String, Object> pMap) throws Exception {
+		ModelAndView mav = new ModelAndView("jsonView");
+		Map<String, Object> rtnMap = productService.setProductList(pMap);
+		
+		mav.addObject("result", rtnMap); 
+		return mav;
+	}
 }

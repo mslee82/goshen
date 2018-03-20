@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
 import com.hk.gs.product.mapper.ProductMapper;
+import com.hk.gs.util.CommUtil;
 
 /**
  * Handles requests for the application home page.
@@ -63,5 +64,28 @@ public class ProductService {
 	 */
 	public List<HashMap<String, Object>> getProductList(Map<String, Object> map) throws Exception {		
     	return productMapper.getProductList(map);		
+    }
+	
+	/**
+	 * 상품 목록에서 수정
+	 * @since 2018.03.20
+	 * @author 이명선
+	 * @throws Exception 
+	 */
+	public Map<String, Object> setProductList(Map<String, Object> map) throws Exception {
+		List<Map<String, Object>> jsonData = CommUtil.json2List(String.valueOf(map.get("jsonData")));
+		Map<String, Object> rtnMap = new HashMap<String, Object>();
+		Map<String, Object> tempMap;
+
+		for (int i = 0; i < jsonData.size(); i++) {
+			tempMap = jsonData.get(i);
+			
+			//상품명 " 기호 replace
+			tempMap.put("prod_nm", tempMap.get("prod_nm").toString().replaceAll("&quot;", "\""));
+			productMapper.setUpdProductForForm(tempMap);
+		}
+
+	    rtnMap.put("returnYn", "Y");
+    	return rtnMap;
     }
 }
