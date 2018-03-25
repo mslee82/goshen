@@ -72,7 +72,7 @@
 				dataList  = '<tr>';
 				dataList += '<td>' + (i+1) + '</td>';
 				dataList += '<td>' + gfn_nvl(val.prod_nm) + '</td>';			//품명
-				dataList += '<td>' + gfn_nvl(val.delivery_detail) + '</td>';	//수량						
+				dataList += '<td style="text-align: left;">' + gfn_nvl(val.delivery_detail) + '</td>';	//수량						
 				dataList += '</tr>';				
 				$("#board_list tbody").append(dataList);
 			});
