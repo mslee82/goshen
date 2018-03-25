@@ -4,7 +4,7 @@
 
 	<select id="getDeliveryListForDrivers" parameterType="hashmap" resultType="hashmap">
 	 	 SELECT prod_nm
-				, GROUP_CONCAT(concat_txt) delivery_detail
+				, GROUP_CONCAT(concat_txt ORDER BY unit_ord, sell_quan) delivery_detail
 		  FROM (
 				SELECT d.prod_nm
 						, b.cust_nm
@@ -12,6 +12,7 @@
 						, e.unit_nm
 						, d.prod_typ
 						, f.ord
+						, e.ord AS unit_ord
 						, CONCAT(b.cust_al, c.sell_quan, e.unit_al) AS concat_txt
 				  FROM delivery_info a JOIN customer b						  			 
 							  			 ON a.truck_no = b.truck_no
