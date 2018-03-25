@@ -68,15 +68,16 @@ public class DeliveryInfoController {
 	public void downloadDeliveryList(@RequestParam Map<String, Object> pMap, HttpServletRequest request, HttpServletResponse response) throws Exception {
 		//영수증 내역 조회
 		List<HashMap<String, Object>> deliveryList = deliveryInfoService.getDeliveryListForDrivers(pMap);
-		Map<String, Object> trcukInfo = deliveryInfoService.getTruckInfo(pMap);
+		Map<String, Object> today = deliveryInfoService.getToday(pMap);
 		// 받은 데이터를 맵에 담는다.
         Map<String, Object> beans = new HashMap<String, Object>();
         beans.put("dataList", deliveryList);
-        beans.put("trcukInfo", trcukInfo);
+        beans.put("todayInfo", today);
+        //beans.put("trcukInfo", trcukInfo);
         
         // 엑셀 다운로드 메소드가 담겨 있는 객체
         MakeExcel me = new MakeExcel();
 
-        me.download(request, response, beans, "deliveryList.xls", "deliveryTemplet.xls", "xls");
+        me.download(request, response, beans, today.get("file_nm").toString()+".xls", "deliveryTemplet.xls", "xls");
 	}
 }

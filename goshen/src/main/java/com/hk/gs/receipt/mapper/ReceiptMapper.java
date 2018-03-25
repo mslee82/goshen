@@ -9,7 +9,7 @@ public interface ReceiptMapper {
 	public List<HashMap<String, Object>> getReceiptList(Map<String, Object> map) throws Exception;
 	public Map<String, Object> getCustInfo(Map<String, Object> map) throws Exception;
 	public List<HashMap<String, Object>> getSellDtList(Map<String, Object> map) throws Exception;
-	public List<HashMap<String, Object>> getSellDtListForBranch(Map<String, Object> map) throws Exception;
+	public List<HashMap<String, Object>> getSellDtListLv3(Map<String, Object> map) throws Exception;
 	public Map<String, Object> getSellTotalPrice(Map<String, Object> map) throws Exception;
 	public Map<String, Object> getCheckSellType(Map<String, Object> map) throws Exception;
 	public int setProductPrice(Map<String, Object> map) throws Exception;

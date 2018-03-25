@@ -9,4 +9,5 @@ public interface DeliveryInfoMapper {
 	
 	public List<HashMap<String, Object>> getDeliveryListForDrivers(Map<String, Object> map) throws Exception;
 	public Map<String, Object> getTruckInfo(Map<String, Object> map) throws Exception;
+	public Map<String, Object> getToday(Map<String, Object> map) throws Exception;
 }

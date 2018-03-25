@@ -44,4 +44,14 @@ public class DeliveryInfoService {
 	public Map<String, Object> getTruckInfo(Map<String, Object> map) throws Exception {		
     	return deliveryInfoMapper.getTruckInfo(map);		
     }
+	
+	/**
+	 * 날짜 가져오기
+	 * @since 2018.03.25
+	 * @author 이명선
+	 * @throws Exception 
+	 */
+	public Map<String, Object> getToday(Map<String, Object> map) throws Exception {		
+    	return deliveryInfoMapper.getToday(map);		
+    }
 }

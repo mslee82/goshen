@@ -66,9 +66,14 @@
 			 	   
 			 	</otherwise>
 		 	</choose>
-			   <if test="sReceiptLv != null and sReceiptLv eq '2'.toString()">	   	  
-			   	   AND ((c.receipt_lv = 2 AND d.tax_yn = 'N') OR (c.receipt_lv = 1 AND d.tax_yn = 'Y'))
-			   </if>
+			   	<if test="sReceiptLv != null and sReceiptLv != '' ">
+					<if test="sReceiptLv eq '1'.toString()">
+					AND d.tax_yn = 'Y'
+					</if>
+					<if test="sReceiptLv eq '2'.toString()">
+				   	AND d.tax_yn = 'N'
+				   </if>				   
+				</if> 
 				 UNION
 				 /* 반품내역 */
 				 SELECT f.return_dt AS sell_dt
@@ -116,9 +121,14 @@
 						, (SELECT @rownum:=0) TMP
 				 WHERE a.cust_no = #{cust_no}
 				   AND f.return_dt BETWEEN DATE_FORMAT(#{fromSellDt},'%Y%m%d') AND DATE_FORMAT(#{toSellDt},'%Y%m%d')
-			   <if test="sReceiptLv != null and sReceiptLv eq '2'.toString()">
-			   	   AND ((c.receipt_lv = 2 AND d.tax_yn = 'N') OR (c.receipt_lv = 1 AND d.tax_yn = 'Y'))
-			   </if>
+			   <if test="sReceiptLv != null and sReceiptLv != '' ">
+					<if test="sReceiptLv eq '1'.toString()">
+					AND d.tax_yn = 'Y'
+					</if>
+					<if test="sReceiptLv eq '2'.toString()">
+				   	AND d.tax_yn = 'N'
+				   </if>				   
+			   </if> 
 			) k
 		ORDER BY k.tax_yn DESC, k.prod_typ, k.prod_nm, k.gb
     </select>
@@ -146,7 +156,7 @@
 						, c.phone
 						, b.cust_no
 						, b.cust_nm
-						, c.receipt_lv
+						, c.receipt_lv /* company_info lv을 따라가야 반복하며 다운로드시 tax_yn 여부를 따라 select 할 수 있음*/
 						, b.branch_nm				
 				  FROM sell a JOIN customer b
 				  			    ON a.cust_no = b.cust_no
@@ -155,10 +165,6 @@
 				  			  JOIN product d
 				  			    ON a.prod_no = d.prod_no
 				 WHERE a.sell_dt BETWEEN DATE_FORMAT(#{fromSellDt},'%Y%m%d') AND DATE_FORMAT(#{toSellDt},'%Y%m%d')  
-				<if test="sReceiptLv != null and sReceiptLv eq '2'.toString()">
-					/* 발행레벨이 2인 경우에만 조건을 넣어 각각 조회 */
-				   AND ((c.receipt_lv = 2 AND d.tax_yn = 'N') OR (c.receipt_lv = 1 AND d.tax_yn = 'Y'))
-				</if> 
 				<if test="sMainStoreYn != null and sMainStoreYn eq 'N'.toString()">
 				   AND a.cust_no = #{cust_no}
 				</if>
@@ -176,7 +182,7 @@
 						, c.phone
 						, b.cust_no
 						, b.cust_nm
-						, c.receipt_lv
+						, c.receipt_lv /* company_info lv을 따라가야 반복하며 다운로드시 tax_yn 여부를 따라 select 할 수 있음*/
 						, b.branch_nm			
 				  FROM sell a JOIN customer b
 				  			    ON a.cust_no = b.cust_no
@@ -190,10 +196,79 @@
 					     	   AND a.sell_seq = f.sell_seq				     		
 				 WHERE a.cust_no = #{cust_no}
 				   AND f.return_dt BETWEEN DATE_FORMAT(#{fromSellDt},'%Y%m%d') AND DATE_FORMAT(#{toSellDt},'%Y%m%d')
-				<if test="sReceiptLv != null and sReceiptLv eq '2'.toString()">
-					/* 발행레벨이 2인 경우에만 조건을 넣어 각각 조회 */
-				   AND ((c.receipt_lv = 2 AND d.tax_yn = 'N') OR (c.receipt_lv = 1 AND d.tax_yn = 'Y'))
-				</if> 
+				<if test="sMainStoreYn != null and sMainStoreYn eq 'N'.toString()">
+				   AND a.cust_no = #{cust_no}
+				</if>
+				<if test="sMainStoreYn != null and sMainStoreYn eq 'Y'.toString()">
+				   AND (b.cust_no = #{cust_no} OR b.mainstore_cust_no = #{cust_no})		   
+				</if>   
+			) k
+		ORDER BY k.dt_list asc 
+    </select>
+    
+    <select id="getSellDtListLv3" parameterType="hashmap" resultType="hashmap">
+    	SELECT k.*
+    	  FROM (
+				SELECT DISTINCT DATE_FORMAT(a.sell_dt,'%Y-%m-%d') dt_list
+						, c.company_nm
+						, c.account
+						, c.bank_nm
+						, c.reg_no
+						, c.phone
+						, b.cust_no
+						, b.cust_nm
+						, b.receipt_lv
+						, b.branch_nm				
+				  FROM sell a JOIN customer b
+				  			    ON a.cust_no = b.cust_no
+				  			  JOIN (
+					  			  	SELECT GROUP_CONCAT(reg_no ORDER BY receipt_lv DESC) AS reg_no
+										 , GROUP_CONCAT(company_nm ORDER BY receipt_lv DESC) AS company_nm
+										 , MAX(phone) AS phone
+										 , MAX(bank_nm) AS bank_nm
+										 , GROUP_CONCAT(account ORDER BY receipt_lv DESC) AS account
+								  	 FROM company_info
+				  			  ) c
+				  			  JOIN product d
+				  			    ON a.prod_no = d.prod_no
+				 WHERE a.sell_dt BETWEEN DATE_FORMAT(#{fromSellDt},'%Y%m%d') AND DATE_FORMAT(#{toSellDt},'%Y%m%d')  
+				<if test="sMainStoreYn != null and sMainStoreYn eq 'N'.toString()">
+				   AND a.cust_no = #{cust_no}
+				</if>
+				<if test="sMainStoreYn != null and sMainStoreYn eq 'Y'.toString()">
+				   AND (b.cust_no = #{cust_no} OR b.mainstore_cust_no = #{cust_no})		   
+				</if>
+				
+				 UNION
+				 /* 반품내역 */
+				 SELECT DISTINCT DATE_FORMAT(f.return_dt,'%Y-%m-%d') dt_list
+						, c.company_nm
+						, c.account
+						, c.bank_nm
+						, c.reg_no
+						, c.phone
+						, b.cust_no
+						, b.cust_nm
+						, b.receipt_lv
+						, b.branch_nm			
+				  FROM sell a JOIN customer b
+				  			    ON a.cust_no = b.cust_no
+				  			  JOIN (
+					  			  	SELECT GROUP_CONCAT(reg_no ORDER BY receipt_lv DESC) AS reg_no
+										 , GROUP_CONCAT(company_nm ORDER BY receipt_lv DESC) AS company_nm
+										 , MAX(phone) AS phone
+										 , MAX(bank_nm) AS bank_nm
+										 , GROUP_CONCAT(account ORDER BY receipt_lv DESC) AS account
+								  	 FROM company_info
+				  			  ) c
+				  			  JOIN product d
+				  			    ON a.prod_no = d.prod_no
+					          JOIN sell_return f
+					     		ON a.cust_no = f.cust_no
+					     	   AND a.sell_dt = f.sell_dt
+					     	   AND a.sell_seq = f.sell_seq				     		
+				 WHERE a.cust_no = #{cust_no}
+				   AND f.return_dt BETWEEN DATE_FORMAT(#{fromSellDt},'%Y%m%d') AND DATE_FORMAT(#{toSellDt},'%Y%m%d')
 				<if test="sMainStoreYn != null and sMainStoreYn eq 'N'.toString()">
 				   AND a.cust_no = #{cust_no}
 				</if>

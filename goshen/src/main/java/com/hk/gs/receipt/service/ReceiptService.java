@@ -72,9 +72,9 @@ public class ReceiptService {
 	 * @author ¿Ã∏Ìº±
 	 * @throws Exception 
 	 */
-	public List<HashMap<String, Object>> getSellDtListForBranch(Map<String, Object> map) throws Exception {
+	public List<HashMap<String, Object>> getSellDtListLv3(Map<String, Object> map) throws Exception {
 		
-    	return receiptMapper.getSellDtListForBranch(map);		
+    	return receiptMapper.getSellDtListLv3(map);		
     }
 	
 	/**

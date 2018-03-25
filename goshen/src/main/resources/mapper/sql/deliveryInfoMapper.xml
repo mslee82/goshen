@@ -12,7 +12,7 @@
 						, e.unit_nm
 						, d.prod_typ
 						, f.ord
-						, CONCAT(b.cust_nm, c.sell_quan, e.unit_nm) AS concat_txt
+						, CONCAT(b.cust_al, c.sell_quan, e.unit_al) AS concat_txt
 				  FROM delivery_info a JOIN customer b						  			 
 							  			 ON a.truck_no = b.truck_no
 							  		   JOIN sell c 
@@ -26,7 +26,9 @@
 				 WHERE c.sell_dt = DATE_FORMAT(#{sell_dt},'%Y%m%d')	
 				   /*미입(N)제외 교환(E)은 무조건 작업표에만 포함시킴*/
 			   	   AND IFNULL(c.sell_type, '') != 'N'
+			   	   <if test="truck_no != null and truck_no != '' ">	   	  
 			   	   AND a.truck_no = #{truck_no}
+			   	   </if>
 				) a
 		  GROUP BY prod_nm
 		  ORDER BY prod_typ, ord
@@ -37,6 +39,13 @@
 				, a.truck_nm
 				, DATE_FORMAT(SYSDATE()	, '%Y년 %m월 %d일') today				
 		  FROM delivery_info a
+		 <if test="truck_no != null and truck_no != '' ">	   	  
 		 WHERE a.truck_no = #{truck_no}
+		 </if>
+    </select>
+    
+    <select id="getToday" parameterType="hashmap" resultType="hashmap">
+		SELECT DATE_FORMAT(SYSDATE(), '%Y년 %m월 %d일') today		
+			  , DATE_FORMAT(SYSDATE(), '%Y_%m_%d') file_nm   
     </select>
 </mapper>

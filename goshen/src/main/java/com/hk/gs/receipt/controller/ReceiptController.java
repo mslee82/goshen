@@ -90,7 +90,7 @@ public class ReceiptController {
 		String strMainStoreYn = (String)custInfo.get("mainstore_yn");	//본지점 구분값. 없을 수 있음.
 		String strReceiptLv = (String)custInfo.get("receipt_lv");		//영수증 발행 레벨
 		String strToday = (String)custInfo.get("today");				//엑셀 파일명을 만들기 위함
-		String strCustNm = (String)custInfo.get("cust_nm");				//고객명 엑셀 파일명을 만들기 위함
+		String strCustNm = (String)custInfo.get("cust_nm");				//고객명 엑셀 파일명을 만들기 위함		
 		String strFileNm = strCustNm + strToday + ".xls";				//파일명
 		
 		List<HashMap<String, Object>> sheetList = new ArrayList<HashMap<String, Object>>();
@@ -108,12 +108,23 @@ public class ReceiptController {
 		} else {
 			pMap.put("sReceiptLv", "");
 		}
+
+		double dSumTaxFree = 0;
+		double dSumSupply = 0;
+		double dSumTax = 0;
+		double dSumSubTotal = 0;
+		double dSumTotal = 0;
 		
 		//엑셀 multi sheet 처리를 위한 조회
-		tmpList = receiptService.getSellDtList(pMap);
+		if("3".equals(strReceiptLv)) {
+			tmpList = receiptService.getSellDtListLv3(pMap);
+		} else {
+			tmpList = receiptService.getSellDtList(pMap);
+		}
 		
 		//엑셀 multi sheet 처리를 위한 작업
 		int iTmpList = tmpList.size();
+		int iCnt = 0;
 		for(int idx=0; idx < iTmpList; idx++) {
 			receiptMap = new HashMap<String, Object>();
 			
@@ -132,9 +143,28 @@ public class ReceiptController {
 			//기간별 영수증 조회 엑셀 양식에 맞춤
 			receiptList = receiptService.previewReceipt(tmpMap);
 			
+			if(receiptList.size() == 0) {
+				continue;
+			}
 			if(idx > 0) {
 				totalPrice = receiptService.getSellTotalPrice(tmpMap);
 			}
+			
+			//영수증 하단의 합계란에 $[SUM(F14)] 식으로 처리하면 =N/A 오류가 나는 경우가 있어 부득이 하게 여기에서 계산으로 처리함
+			for(int idx2=0; idx2 < receiptList.size(); idx2++) {
+				dSumTaxFree += receiptList.get(idx2).get("tax_free") != null ? Double.parseDouble(receiptList.get(idx2).get("tax_free").toString()) : 0;
+				dSumSupply += receiptList.get(idx2).get("supply") != null ? Double.parseDouble(receiptList.get(idx2).get("supply").toString()) : 0;
+				dSumTax += receiptList.get(idx2).get("tax") != null ? Double.parseDouble(receiptList.get(idx2).get("tax").toString()) : 0;
+				dSumSubTotal += dSumSupply + dSumTax;				 
+			}
+			
+			dSumTotal = dSumTaxFree + dSumSubTotal;
+			
+			receiptMap.put("sumtaxfree", dSumTaxFree > 0 ? dSumTaxFree : "");		//면세
+			receiptMap.put("sumsupply", dSumSupply > 0 ? dSumSupply : "");			//공급가
+			receiptMap.put("sumtax", dSumTax > 0 ? dSumTax : "");					//부가세
+			receiptMap.put("sumsubtotal", dSumSubTotal > 0 ? dSumSubTotal : "");	//과세계
+			receiptMap.put("sumtotal", dSumTotal > 0 ? dSumTotal : "");				//합계
 			
 			//당일 합계
 			if(receiptList != null) {
@@ -145,17 +175,28 @@ public class ReceiptController {
 					receiptMap.put("total_price", totalPrice.get("total_price"));
 				}
 			}
+			
 			receiptMap.put("dt_list"	, tmpList.get(idx).get("dt_list"));
-			receiptMap.put("company_nm"	, tmpList.get(idx).get("company_nm"));
 			receiptMap.put("account"	, tmpList.get(idx).get("account"));
 			receiptMap.put("bank_nm"	, tmpList.get(idx).get("bank_nm"));
-			receiptMap.put("reg_no"		, tmpList.get(idx).get("reg_no"));
+			
+			//영수증레벨 3이면 등록번호, 상호 두줄로
+			if(tmpList.get(idx).get("reg_no").toString().indexOf(",") > 0) {
+				receiptMap.put("company_nm", tmpList.get(idx).get("company_nm").toString().replaceAll(",", "\n"));
+				receiptMap.put("reg_no"	, tmpList.get(idx).get("reg_no").toString().replaceAll(",", "\n"));
+			} else{
+				receiptMap.put("company_nm", tmpList.get(idx).get("company_nm"));
+				receiptMap.put("reg_no"	, tmpList.get(idx).get("reg_no"));
+			}
+			
 			receiptMap.put("phone"		, tmpList.get(idx).get("phone"));
 			receiptMap.put("cust_no"	, tmpList.get(idx).get("cust_no"));
 			receiptMap.put("cust_nm"	, tmpList.get(idx).get("cust_nm"));
-			receiptMap.put("receipt_lv"	, tmpList.get(idx).get("receipt_lv"));
+			//receiptMap.put("receipt_lv"	, tmpList.get(idx).get("receipt_lv"));
+			receiptMap.put("receipt_lv"	, strReceiptLv);
 			receiptMap.put("branch_nm"	, tmpList.get(idx).get("branch_nm"));
-			sheetList.add(idx, receiptMap);
+			sheetList.add(iCnt, receiptMap);
+			iCnt ++;
 		}
 		
 		//받은 데이터를 맵에 담는다.
