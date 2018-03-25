@@ -11,7 +11,7 @@
 						, c.sell_quan
 						, e.unit_nm
 						, d.prod_typ
-						, f.ord
+						, IFNULL(f.ord, 9999) AS ord
 						, e.ord AS unit_ord
 						, CONCAT(b.cust_al, c.sell_quan, e.unit_al) AS concat_txt
 				  FROM delivery_info a JOIN customer b						  			 

@@ -33,7 +33,7 @@
 						, d.prod_typ
 						, '' AS gb /*반품구분*/
 						, '' AS return_date
-						, g.ord
+						, IFNULL(g.ord, 9999) AS ord
 				  FROM sell a LEFT JOIN product_price  b
 									 ON a.cust_no = b.cust_no
 								    AND a.prod_no = b.prod_no
@@ -102,7 +102,7 @@
 						, d.prod_typ
 						, 'R' AS gb /*반품구분*/
 						, f.sell_dt AS return_date
-						, h.ord
+						, IFNULL(h.ord, 99999) AS ord
 				  FROM sell a LEFT JOIN product_price  b
 									 ON a.cust_no = b.cust_no
 								    AND a.prod_no = b.prod_no
