@@ -130,7 +130,7 @@
 				   </if>				   
 			   </if> 
 			) k
-		ORDER BY k.tax_yn DESC, k.prod_typ, k.prod_nm, k.gb
+		ORDER BY k.tax_yn, k.prod_typ, k.prod_nm, k.gb
     </select>
 
     <select id="getCustInfo" parameterType="hashmap" resultType="hashmap">
