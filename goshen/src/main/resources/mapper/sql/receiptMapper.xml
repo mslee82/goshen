@@ -33,6 +33,7 @@
 						, d.prod_typ
 						, '' AS gb /*반품구분*/
 						, '' AS return_date
+						, g.ord
 				  FROM sell a LEFT JOIN product_price  b
 									 ON a.cust_no = b.cust_no
 								    AND a.prod_no = b.prod_no
@@ -48,6 +49,8 @@
 							         ON a.prod_no = f.prod_no
 							        AND a.unit = f.unit
 								    AND a.sell_dt BETWEEN f.start_dt AND f.end_dt
+							  LEFT JOIN ord g
+							  		 ON d.prod_no = g.prod_no
 						, (SELECT @rownum:=0) TMP
 				 WHERE a.cust_no = #{cust_no}
 				   AND a.sell_dt BETWEEN DATE_FORMAT(#{fromSellDt},'%Y%m%d') AND DATE_FORMAT(#{toSellDt},'%Y%m%d')  
@@ -99,6 +102,7 @@
 						, d.prod_typ
 						, 'R' AS gb /*반품구분*/
 						, f.sell_dt AS return_date
+						, h.ord
 				  FROM sell a LEFT JOIN product_price  b
 									 ON a.cust_no = b.cust_no
 								    AND a.prod_no = b.prod_no
@@ -117,7 +121,9 @@
 						      LEFT JOIN com_product_price g
 							         ON a.prod_no = g.prod_no
 							        AND a.unit = g.unit
-								    AND a.sell_dt BETWEEN g.start_dt AND g.end_dt				     		
+								    AND a.sell_dt BETWEEN g.start_dt AND g.end_dt		
+							  LEFT JOIN ord h
+							  		 ON d.prod_no = h.prod_no		     		
 						, (SELECT @rownum:=0) TMP
 				 WHERE a.cust_no = #{cust_no}
 				   AND f.return_dt BETWEEN DATE_FORMAT(#{fromSellDt},'%Y%m%d') AND DATE_FORMAT(#{toSellDt},'%Y%m%d')
@@ -130,7 +136,7 @@
 				   </if>				   
 			   </if> 
 			) k
-		ORDER BY k.tax_yn, k.prod_typ, k.prod_nm, k.gb
+		ORDER BY k.tax_yn, k.prod_typ, k.ord, k.prod_nm, k.gb
     </select>
 
     <select id="getCustInfo" parameterType="hashmap" resultType="hashmap">
@@ -277,68 +283,7 @@
 				</if>   
 			) k
 		ORDER BY k.dt_list asc 
-    </select>
-    
-    <select id="getDailyTotalPrice" parameterType="hashmap" resultType="hashmap">
-    	SELECT k.sell_dt
-    		   , SUM(total_price) AS total_price
-    	  FROM (
-				 /* 판매내역 */
-				 SELECT a.sell_dt
-						, d.prod_nm						
-						, (a.sell_quan * IFNULL(b.prod_price, f.prod_price)) AS total_price /*계*/
-				  FROM sell a LEFT JOIN product_price b
-									 ON a.cust_no = b.cust_no
-								    AND a.prod_no = b.prod_no
-								    AND a.unit = b.unit
-								    AND a.sell_dt BETWEEN b.start_dt AND b.end_dt
-				  			  	   JOIN customer c
-									 ON a.cust_no = c.cust_no
-							  LEFT JOIN product d
-								 	 ON a.prod_no = d.prod_no
-							  LEFT JOIN unit e
-								     ON a.unit = e.unit
-							  LEFT JOIN com_product_price f
-							         ON a.prod_no = f.prod_no
-							        AND a.unit = f.unit
-								    AND a.sell_dt BETWEEN f.start_dt AND f.end_dt
-				 WHERE a.cust_no = #{cust_no}
-				   AND a.sell_dt BETWEEN DATE_FORMAT(#{fromSellDt},'%Y%m%d') AND DATE_FORMAT(#{toSellDt},'%Y%m%d')  
-			   <if test="sReceiptLv != null and sReceiptLv eq '2'.toString()">	   	  
-			   	   AND ((c.receipt_lv = 2 AND d.tax_yn = 'N') OR (c.receipt_lv = 1 AND d.tax_yn = 'Y'))
-			   </if>
-				 UNION
-				 /* 반품내역 */
-				 SELECT f.return_dt AS sell_dt
-						, d.prod_nm						
-						, (f.return_quan * IFNULL(b.prod_price, g.prod_price)) * -1	AS total_price /*계*/
-				  FROM sell a LEFT JOIN product_price b
-									 ON a.cust_no = b.cust_no
-								    AND a.prod_no = b.prod_no
-								    AND a.unit = b.unit
-								    AND a.sell_dt BETWEEN b.start_dt AND b.end_dt
-				  			  	   JOIN customer c
-									 ON a.cust_no = c.cust_no
-							  LEFT JOIN product d
-								 	 ON a.prod_no = d.prod_no
-							  LEFT JOIN unit e
-								     ON a.unit = e.unit
-						           JOIN sell_return f
-						     		 ON a.cust_no = f.cust_no
-						     		AND a.sell_dt = f.sell_dt
-						     		AND a.sell_seq = f.sell_seq	
-						      LEFT JOIN com_product_price g
-							         ON a.prod_no = g.prod_no
-							        AND a.unit = g.unit
-								    AND a.sell_dt BETWEEN g.start_dt AND g.end_dt				     		
-				 WHERE a.cust_no = #{cust_no}
-				   AND f.return_dt BETWEEN DATE_FORMAT(#{fromSellDt},'%Y%m%d') AND DATE_FORMAT(#{toSellDt},'%Y%m%d')
-			   <if test="sReceiptLv != null and sReceiptLv eq '2'.toString()">
-			   	   AND ((c.receipt_lv = 2 AND d.tax_yn = 'N') OR (c.receipt_lv = 1 AND d.tax_yn = 'Y'))
-			   </if>
-			) k
-		ORDER BY k.sell_dt
-    </select>
+    </select>    
     
     <select id="getSellTotalPrice" parameterType="hashmap" resultType="hashmap">
     	SELECT DATE_FORMAT(k.sell_dt + 1, '%Y%m%d') sell_dt
