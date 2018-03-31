@@ -12,6 +12,13 @@
 				fnSellSave();
 			});			
 
+			//과세 선택하면 공산품 자동으로 선택
+			$(document).on('change', '#board_list > tbody > tr > td > select[name="taxYn"]', function() {	
+				if($(this).val() == "Y"){
+					var params = $(this).parents("td").parents("tr");
+					$(params).find("select[name='prodTyp']").val("B");
+				}
+			});				
 		});
 		
 		function checkFileType(filePath){
