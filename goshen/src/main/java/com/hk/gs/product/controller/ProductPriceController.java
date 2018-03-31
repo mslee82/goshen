@@ -33,40 +33,6 @@ public class ProductPriceController {
 	private ProductPriceService productPriceService;
 	
 	/**
-	 * 단가표 업로드 화면
-	 * @since 2017.10.22
-	 * @author 이명선
-	 * @throws Exception 
-	 */
-	@RequestMapping(value = "/product/productPriceUpload.do")
-	public String productUploadPage(Model model, @RequestParam Map<String, Object> pMap) {
-		return "productPriceUpload";
-	}
-
-	/**
-	 * 단가표 업로드
-	 * @since 2017.10.22
-	 * @author 이명선
-	 * @throws Exception 
-	 */
-	@ResponseBody
-    @RequestMapping(value = "/product/productUploadExe.do", method = RequestMethod.POST)
-	public ModelAndView productUploadExe(MultipartHttpServletRequest request)  throws Exception{		
-        MultipartFile excelFile = request.getFile("excel");
-        System.out.println("엑셀 파일 업로드 컨트롤러");
-        
-        /**
-         * 단가표 업로드
-         * 없을때는 시작일자 to day 종료일자 9999.12.31로 insert
-         * 있을때는 기존 데이터의 종료일자를 입력일자-1 update 후 없을때 처럼 insert
-         */
-        productPriceService.setProductPriceForExcelUpload(excelFile);   
-        ModelAndView mav = new ModelAndView("jsonView");
-        mav.addObject("msg", "단가표 업로드 완료");
-        return mav;
-    }
-	
-	/**
 	 * 단가표 목록 화면
 	 * @since 2017.12.06
 	 * @author 이명선

@@ -7,12 +7,6 @@ import java.util.Map;
 
 public interface ProductPriceMapper {
 	
-	//단가표 엑셀업로드. 사용하지 않아 삭제 예정
-	public Map<String, Object> getProductPriceUploadInfo(Map<String, Object> map) throws Exception;
-	//단가표 엑셀업로드. 사용하지 않아 삭제 예정
-	public int setProductPriceEndDt(Map<String, Object> map) throws Exception;
-	//단가표 엑셀업로드. 사용하지 않아 삭제 예정
-	public int setProductPriceForExcelUpload(Map<String, Object> map) throws Exception;
 	public List<HashMap<String, Object>> getProductPriceList(Map<String, Object> map) throws Exception;
 	public int setDelProductPrice(Map<String, Object> map) throws Exception;
 	public int setUpdProductPriceEndDtRollBack(Map<String, Object> map) throws Exception;

@@ -1,51 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.hk.gs.product.mapper.ProductPriceMapper">
-
-	<select id="getProductPriceUploadInfo" parameterType="hashmap" resultType="hashmap">
-		/* 단가표 엑셀업로드 	사용하지 않아 삭제 예정
-		SELECT cust_no
-			  , prod_no
-			  , prod_seq
-			  , (prod_seq + 1) next_prod_seq
-		  FROM product_price
-		 WHERE cust_no = (SELECT cust_no FROM customer WHERE cust_nm = #{B})
-		   AND prod_no = (SELECT prod_no FROM product WHERE prod_nm = #{C})
-		   AND unit = (SELECT unit FROM unit WHERE unit_nm = #{D})
-		   AND end_dt = '99991231'
-		 */
-	</select>
-	
-	<update id="setProductPriceEndDt" parameterType="hashmap">
-		/* 단가표 엑셀업로드 	사용하지 않아 삭제 예정
-		UPDATE product_price
-		   SET end_dt = DATE_FORMAT(DATE(#{A}-1),'%Y%m%d')
-		 WHERE cust_no = #{cust_no}
-		   AND prod_no = #{prod_no}
-		   AND prod_seq = #{prod_seq}
-		   AND unit = #{unit}
-		*/
-	</update>
-	
-    <insert id="setProductPriceForExcelUpload" parameterType="hashmap">
-    /*단가표 엑셀업로드 	사용하지 않아 삭제 예정
-		INSERT INTO product_price (start_dt
-									, cust_no
-									, prod_no
-									, prod_seq
-									, prod_price
-									, end_dt
-									) 
-				VALUES
-						(#{A}
-						, (SELECT cust_no FROM customer WHERE cust_nm = #{B})
-						, (SELECT prod_no FROM product WHERE prod_nm = #{C})
-						, #{next_prod_seq}
-						, #{D}
-						, '99991231'
-						)
-	*/
-    </insert>
     
     <select id="getProductPriceList" parameterType="hashmap" resultType="hashmap">
 			 SELECT a.cust_no
@@ -73,6 +28,9 @@
 		 </if>
 		 <if test="prod_no != null and prod_no != ''">
 		  	   AND a.prod_no = #{prod_no}
+		 </if>
+		 <if test="prod_typ != null and prod_typ != ''">
+		  	   AND c.prod_typ = #{prod_typ}
 		 </if>
     </select>
     
@@ -138,7 +96,11 @@
 	    <if test="prod_no != null and prod_no != ''">
 		  AND a.prod_no = #{prod_no}
 		</if>
-	 GROUP BY a.prod_no, a.unit, c.unit_nm, d.prod_price, e.prod_price, a.sell_dt		  
+		<if test="prod_typ != null and prod_typ != ''">
+		  AND b.prod_typ = #{prod_typ}
+		</if>
+	 GROUP BY a.prod_no, a.unit, c.unit_nm, d.prod_price, e.prod_price, a.sell_dt
+	 ORDER BY b.prod_typ		  
     </select>
     
     <select id="getComProductPriceInfo" parameterType="hashmap" resultType="hashmap">

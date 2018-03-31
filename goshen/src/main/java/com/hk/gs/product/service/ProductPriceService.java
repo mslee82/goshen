@@ -1,7 +1,5 @@
 package com.hk.gs.product.service;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,12 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.hk.gs.product.mapper.ProductPriceMapper;
 import com.hk.gs.util.CommUtil;
-import com.hk.gs.util.ExcelRead;
-import com.hk.gs.util.ExcelReadOption;
 
 /**
  * Handles requests for the application home page.
@@ -30,56 +25,6 @@ public class ProductPriceService {
 	
 	@Resource(name="productPriceMapper")
     private ProductPriceMapper productPriceMapper;
-
-	/**
-	 * 단가표 업로드해 product_price table에  insert
-	 * @since 2017.10.22
-	 * @author 이명선
-	 * @throws Exception 
-	 */
-	public int setProductPriceForExcelUpload(MultipartFile excelFile) throws Exception {
-		if(excelFile==null || excelFile.isEmpty()){
-            throw new RuntimeException("엑셀파일을 선택 해 주세요.");
-        }
-	        
-	    File destFile = new File("D:\\"+excelFile.getOriginalFilename());
-	    try {
-	    	excelFile.transferTo(destFile);
-	    } catch(IOException e) {
-	    	throw new RuntimeException(e.getMessage(),e);
-	    }
-	        
-        //Service 단에서 가져온 코드 
-        ExcelReadOption excelReadOption = new ExcelReadOption();
-        excelReadOption.setFilePath(destFile.getAbsolutePath());
-        excelReadOption.setOutputColumns("A","B","C","D","E","F");
-        excelReadOption.setStartRow(1);        
-	        
-        List<Map<String, Object>>excelContent = ExcelRead.read(excelReadOption);
-        Map<String, Object> priceInfo = null;
-        for(Map<String, Object> article: excelContent){
-            System.out.println(article.get("A"));
-            System.out.println(article.get("B"));
-            System.out.println(article.get("C"));
-            System.out.println(article.get("D"));
-            System.out.println(article.get("E"));
-            System.out.println(article.get("F"));
-            //기존에 살아있는 단가표가 있다면 종료일을 업데이트하고 새로운 단가를 생성한다.
-            priceInfo = productPriceMapper.getProductPriceUploadInfo(article);
-            if(null != priceInfo && null != priceInfo.get("cust_no")) {
-            	article.put("cust_no", priceInfo.get("cust_no"));
-            	article.put("prod_no", priceInfo.get("prod_no"));
-            	article.put("prod_seq", priceInfo.get("prod_seq"));
-            	article.put("next_prod_seq", priceInfo.get("next_prod_seq"));
-            	productPriceMapper.setProductPriceEndDt(article);
-            } else {
-            	article.put("next_prod_seq", "1");
-            }
-            productPriceMapper.setProductPriceForExcelUpload(article);
-        }
-
-    	return 1;
-    }
 	
 	/**
 	 * 단가표 목록

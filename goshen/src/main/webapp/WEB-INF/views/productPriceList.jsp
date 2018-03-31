@@ -91,6 +91,8 @@
 			commonAjax.addParam("srch_dt", gfn_nvl($("#srchDt").val()));
 			commonAjax.addParam("cust_no", vCustNoVal);
 			commonAjax.addParam("prod_no", vProdVal);
+			commonAjax.addParam("prod_typ", gfn_nvl($("#prodTyp").val()));
+			
 			commonAjax.setCallback("fnProductPriceListCallback");
 			commonAjax.ajax();	
 		}
@@ -195,10 +197,20 @@
 						    </datalist>	
 						</td>
 						<th>상품</th>
-						<td colspan="3">
+						<td>
 							<input type="text" id="srchProdNo" list="prodList" autocomplete="on" maxlength="50">
 							<datalist id="prodList">
 							</datalist>				
+						</td>						
+						<th>종류</th>
+						<td>
+							<select name="prodTyp">
+								<option value="">전체</option>
+								<option value="A">야채</option>
+								<option value="B">공산품</option>
+								<option value="C">수산</option>
+								<option value="D">고기</option>
+							</select>				
 						</td>
 					</tr>				
 				</tbody>
