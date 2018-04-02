@@ -24,6 +24,6 @@ public class SimpleCellRefGenerator implements CellRefGenerator {
     	strBuff.append(sheetList.get("dt_list"));
     	
     	String sheetName = strBuff.toString();
-        return new CellRef(sheetName + "!B2");
+        return new CellRef(sheetName + "!A2");
     }
 }
