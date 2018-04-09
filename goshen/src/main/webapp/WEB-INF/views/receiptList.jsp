@@ -188,6 +188,7 @@
 						  		, "prod_price" : this.children.listProdPrice.children.prodPrice.value	//금액
 						  		, "tax_yn" : this.children.listTaxYn.children.taxYn.value				//과세여부
 						  		, "prod_typ" : this.children.listProdTyp.children.prodTyp.value			//종류
+						  		, "branch_nm" : this.children.listBranchNm.textContent					//지점
 				}				
 				arrChecked.push(vJsonParam);
 				chkCnt++;

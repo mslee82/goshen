@@ -77,10 +77,10 @@ public class MakeExcel {
             System.out.println("Creating area");
             
             //전체 템플릿 영역 지정  Template!A1:K15 -> 시트명!시작점:종료점
-            XlsArea xlsArea = new XlsArea("Template!A1:M19", transformer);
+            XlsArea xlsArea = new XlsArea("Template!A1:M20", transformer);
             
             //
-            XlsArea sheetArea = new XlsArea("Template!A2:M18", transformer);
+            XlsArea sheetArea = new XlsArea("Template!A2:M19", transformer);
             
             //multi sheet command 단순히 List를 표현하기 위해서라면 이것을 사용할 필요가 없음. 고센의 경우 월,일별로 시트를 모으므로 이것은 일자를 기준으로 반복함.
             //1,2 항목이 동적으로 면세분리면 두 개의 리스트가, 지점보유라면 두 배의 리스트가, 월누적이라면 앞부분을 포함한 누적일자 만큼이 그때는 이부분이 selldt쯤? 
@@ -92,7 +92,7 @@ public class MakeExcel {
             //영수증 목록 데이터셋을 지정
             Command receiptEachCommand = new EachCommand("receiptData", "sheetList.receiptData", excelArea);
             sheetArea.addCommand(new AreaRef("Template!A14:L14"), receiptEachCommand);
-            xlsArea.addCommand(new AreaRef("Template!A2:L18"), sheetEachCommand); //multi sheet command를 영역에 추가함.
+            xlsArea.addCommand(new AreaRef("Template!A2:L19"), sheetEachCommand); //multi sheet command를 영역에 추가함.
             
             //데이터셋은 여기에 putVar로 지정해서 사용
             Context context = new Context();

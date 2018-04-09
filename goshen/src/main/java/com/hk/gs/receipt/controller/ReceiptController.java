@@ -148,6 +148,10 @@ public class ReceiptController {
 			}
 			if(idx > 0) {
 				totalPrice = receiptService.getSellTotalPrice(tmpMap);
+			} else {
+				totalPrice = new HashMap<String, Object>();
+				totalPrice.put("sell_dt", tmpMap.get("fromSellDt"));
+				totalPrice.put("total_price", 0);
 			}
 			
 			//영수증 하단의 합계란에 $[SUM(F14)] 식으로 처리하면 =N/A 오류가 나는 경우가 있어 부득이 하게 여기에서 계산으로 처리함
@@ -171,9 +175,7 @@ public class ReceiptController {
 				receiptMap.put("receiptData", receiptList);
 			}
 			if(totalPrice != null) {
-				if(idx > 0) {
-					receiptMap.put("total_price", totalPrice.get("total_price"));
-				}
+				receiptMap.put("total_price", totalPrice.get("total_price"));
 			}
 			
 			receiptMap.put("dt_list"	, tmpList.get(idx).get("dt_list"));
@@ -211,7 +213,7 @@ public class ReceiptController {
         // 엑셀 다운로드 메소드가 담겨 있는 객체
         MakeExcel me = new MakeExcel();
         
-        me.multiSheetReceiptDownload(request, response, beans, strFileNm, "multitest.xls", "xls");
+        me.multiSheetReceiptDownload(request, response, beans, strFileNm, "receiptTemplet.xls", "xls");
         
 	}
 	

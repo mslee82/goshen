@@ -100,7 +100,7 @@
 		  AND b.prod_typ = #{prod_typ}
 		</if>
 	 GROUP BY a.prod_no, a.unit, c.unit_nm, d.prod_price, e.prod_price, a.sell_dt
-	 ORDER BY b.prod_typ		  
+	 ORDER BY b.prod_typ, b.prod_nm		  
     </select>
     
     <select id="getComProductPriceInfo" parameterType="hashmap" resultType="hashmap">

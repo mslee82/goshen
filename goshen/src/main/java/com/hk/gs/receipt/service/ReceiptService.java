@@ -116,7 +116,7 @@ public class ReceiptService {
 			paramMap.put("tax_yn", tempMap.get("tax_yn"));
     		
 			paramMap.put("cust_no", tempMap.get("cust_no"));
-			//paramMap.put("sell_seq", tempMap.get("sell_seq"));
+			paramMap.put("branch_nm", tempMap.get("branch_nm"));
 			paramMap.put("sell_dt", tempMap.get("sell_dt"));
 			paramMap.put("sell_quan", tempMap.get("sell_quan"));
 			paramMap.put("return_seq", tempMap.get("return_seq"));
