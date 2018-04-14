@@ -62,13 +62,20 @@
 					<li>
 						<a href="#none">영수증</a>
 						<ul class="lnb_2lev">
-							<li><a href="/receipt/viewReceipt.do">영수증 조회 및 다운로드</a></li>
+							<li><a href="/receipt/viewReceipt.do">영수증 조회 및 다운로드</a></li>						
+							<li><a href="/sell/collMoneyListPage.do">수금관리</a></li>
 						</ul>
 					</li>
 					<li>
 						<a href="#none">작업표</a>
 						<ul class="lnb_2lev">
 							<li><a href="/sell/deliveryInfoListPage.do">작업표 조회 및 다운로드</a></li>
+						</ul>
+					</li>
+					<li>
+						<a href="#none">고객관리</a>
+						<ul class="lnb_2lev">
+							<li><a href="/customer/customerListPage.do">고객관리</a></li>
 						</ul>
 					</li>
 				</ul>

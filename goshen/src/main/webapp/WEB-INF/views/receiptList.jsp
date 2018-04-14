@@ -30,20 +30,6 @@
 			    numberOfMonths: 1,
 			    onClose: function( selectedDate ) {}
 			});
-			$("#toSellDt").datepicker({
-				dateFormat: "yy-mm-dd",
-				showOn: "both",
-				buttonImageOnly: true,	
-				defaultDate: "+0d",
-			    changeMonth: true,
-				dayNames: ['일', '월', '화', '수', '목', '금', '토'],
-             	dayNamesMin: ['일', '월', '화', '수', '목', '금', '토'], 
-             	monthNamesShort: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
-             	monthNames: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
-			    changeYear: true,
-			    numberOfMonths: 1,
-			    onClose: function( selectedDate ) {}
-			});
 			
 			//판매가 수정 버튼 이벤트
 			$("#btnPriceMod").on("click", function(){
@@ -86,7 +72,6 @@
 			commonAjax.clearParam();
 			commonAjax.addParam("cust_no", vCustNoVal);
 			commonAjax.addParam("fromSellDt", gfn_nvl($("#fromSellDt").val()));
-			commonAjax.addParam("toSellDt", gfn_nvl($("#toSellDt").val()));
 			commonAjax.setCallback("fnPreviewReceiptCallback");
 			commonAjax.ajax();	
 		}
@@ -229,7 +214,6 @@
 			commonAjax.clearParam();
 			commonAjax.addParam("cust_no", vCustNoVal);
 			commonAjax.addParam("fromSellDt", gfn_nvl($("#fromSellDt").val()));
-			commonAjax.addParam("toSellDt", gfn_nvl($("#toSellDt").val()));
 			commonAjax.setCallback("fnCheckSellTypeCallback");
 			commonAjax.ajax();
 		}
@@ -260,7 +244,6 @@
 			commonSubmit.setUrl("<c:url value='/receipt/downloadReceipt.do' />");
 			commonSubmit.addParam("cust_no", vCustNoVal);
 			commonSubmit.addParam("fromSellDt", gfn_nvl($("#fromSellDt").val()));
-			commonSubmit.addParam("toSellDt", gfn_nvl($("#toSellDt").val()));
 			commonSubmit.addParam("sellType", gfn_nvl($("#sellType").val()));
 			commonSubmit.setMethod("post");
 			commonSubmit.submit();
@@ -288,8 +271,6 @@
 						<th>판매 일자</th>
 						<td class="align-left date" colspan="2">
 							<input type="text" class="search_input" id="fromSellDt" readonly />
-							<label class="mid_date">~</label>
-							<input type="text" class="search_input" id="toSellDt" readonly />
 						</td>
 						<th>고객명</th>
 						<td>

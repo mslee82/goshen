@@ -96,6 +96,7 @@ public class ReceiptController {
 		List<HashMap<String, Object>> sheetList = new ArrayList<HashMap<String, Object>>();
 		List<HashMap<String, Object>> receiptList = null; 	
 		Map<String, Object> totalPrice = null;
+		Map<String, Object> collMoney = null;
 		Map<String, Object> tmpMap = new HashMap<String, Object>();
 		List<HashMap<String, Object>> tmpList = null;		
 		HashMap<String, Object> receiptMap = null;
@@ -146,13 +147,14 @@ public class ReceiptController {
 			if(receiptList.size() == 0) {
 				continue;
 			}
-			if(idx > 0) {
+			//if(idx > 0) {
 				totalPrice = receiptService.getSellTotalPrice(tmpMap);
-			} else {
+				collMoney = receiptService.getCollMoneyType2Amt(tmpMap);
+			/*} else {
 				totalPrice = new HashMap<String, Object>();
 				totalPrice.put("sell_dt", tmpMap.get("fromSellDt"));
 				totalPrice.put("total_price", 0);
-			}
+			}*/
 			
 			//영수증 하단의 합계란에 $[SUM(F14)] 식으로 처리하면 =N/A 오류가 나는 경우가 있어 부득이 하게 여기에서 계산으로 처리함
 			for(int idx2=0; idx2 < receiptList.size(); idx2++) {
@@ -177,6 +179,9 @@ public class ReceiptController {
 			if(totalPrice != null) {
 				receiptMap.put("total_price", totalPrice.get("total_price"));
 			}
+			if(collMoney != null) {
+				receiptMap.put("coll_money", collMoney.get("amt"));
+			}
 			
 			receiptMap.put("dt_list"	, tmpList.get(idx).get("dt_list"));
 			receiptMap.put("account"	, tmpList.get(idx).get("account"));
@@ -194,7 +199,6 @@ public class ReceiptController {
 			receiptMap.put("phone"		, tmpList.get(idx).get("phone"));
 			receiptMap.put("cust_no"	, tmpList.get(idx).get("cust_no"));
 			receiptMap.put("cust_nm"	, tmpList.get(idx).get("cust_nm"));
-			//receiptMap.put("receipt_lv"	, tmpList.get(idx).get("receipt_lv"));
 			receiptMap.put("receipt_lv"	, strReceiptLv);
 			receiptMap.put("branch_nm"	, tmpList.get(idx).get("branch_nm"));
 			sheetList.add(iCnt, receiptMap);

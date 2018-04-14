@@ -6,7 +6,6 @@
     	<selectKey keyProperty="maxCustNo" resultType="integer" order="BEFORE">
 			SELECT IFNULL(MAX(cust_no), 0) + 1 
 			  FROM customer
-			 WHERE cust_no = #{cust_no}
 		</selectKey>
 		INSERT INTO customer ( cust_no
 							   , cust_nm
@@ -72,25 +71,33 @@
     </update>
     
     <select id="getCustomerList" parameterType="hashmap" resultType="hashmap">
-    	 SELECT cust_no
-			   , cust_nm
-			   , cust_al
-			   , cust_addr
-			   , cust_phone 
-			   , cust_mobile
-			   , cust_fax
-			   , owner_nm
-			   , staff_phone1
-			   , staff_phone2
-			   , staff_phone3
-			   , cust_typ
-			   , use_yn
-			   , receipt_lv
-			   , truck_no
-			   , mainstore_yn
-			   , mainstore_cust_no
-			   , branch_nm
-		  FROM customer
+    	 SELECT a.cust_no
+			   , a.cust_nm
+			   , a.cust_al
+			   , a.cust_addr
+			   , a.cust_phone 
+			   , a.cust_mobile
+			   , a.cust_fax
+			   , a.owner_nm
+			   , a.staff_phone1
+			   , a.staff_phone2
+			   , a.staff_phone3
+			   , a.cust_typ
+			   , a.use_yn
+			   , CASE WHEN a.receipt_lv = 1 THEN '고센'
+			   		  WHEN a.receipt_lv = 2 THEN '흥인'
+			   		  WHEN a.receipt_lv = 3 THEN '고센-흥인'
+			   		  ELSE '없음'	
+			   	  END receipt_lv
+			   , (SELECT truck_nm FROM delivery_info WHERE truck_no = a.truck_no) truck_nm  
+			   , CASE WHEN a.mainstore_yn = 'Y' THEN '본점'
+			   		  WHEN a.mainstore_yn = 'N' THEN '지점'
+			   		  ELSE ''
+			   	  END mainstore_yn
+			   , a.mainstore_cust_no
+			   , (SELECT cust_nm FROM customer WHERE cust_no = a.mainstore_cust_no) AS mainstore_cust_nm
+			   , a.branch_nm
+		  FROM customer a
     </select>
     
     <select id="getCustomerInfo" parameterType="hashmap" resultType="hashmap">
@@ -116,4 +123,9 @@
 		 WHERE cust_no = #{cust_no}
     </select>
 
+    
+    <delete id="delCustomer" parameterType="hashmap">
+		DELETE FROM customer		  
+		 WHERE cust_no = #{cust_no}
+    </delete>
 </mapper>

@@ -178,4 +178,15 @@ public class ReceiptService {
 		
     	return receiptMapper.getCheckSellType(map);		
     }
+	
+	/**
+	 * 영수증 하단의 수금 금액 합계
+	 * @since 2018.04.14
+	 * @author 이명선
+	 * @throws Exception 
+	 */
+	public Map<String, Object> getCollMoneyType2Amt(Map<String, Object> map) throws Exception {
+		
+    	return receiptMapper.getCollMoneyType2Amt(map);		
+    }
 }

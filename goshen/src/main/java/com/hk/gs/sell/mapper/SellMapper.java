@@ -18,4 +18,10 @@ public interface SellMapper {
 	public int setProductForList(Map<String, Object> map) throws Exception;
 	public int setProductInfoForList(Map<String, Object> map) throws Exception;			
 	public int delSellList(Map<String, Object> map) throws Exception;
+	
+	public List<HashMap<String, Object>> getCollMoneyList(Map<String, Object> map) throws Exception;
+	public int getCollMoneyCnt(Map<String, Object> map) throws Exception;
+	public int setInsCollMoney(Map<String, Object> map) throws Exception;
+	public int setUpdCollMoney(Map<String, Object> map) throws Exception;			
+	public int delCollMoney(Map<String, Object> map) throws Exception;
 }

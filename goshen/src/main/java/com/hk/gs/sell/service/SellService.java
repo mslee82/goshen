@@ -232,4 +232,46 @@ public class SellService {
 		rtnMap.put("returnMsg", strBuff.toString());
     	return rtnMap;
     }
+	
+	/**
+	 * 수금, 미수금 내역 조회
+	 * @since 2018.04.13
+	 * @author 이명선
+	 * @throws Exception 
+	 */
+	public List<HashMap<String, Object>> getCollMoneyList(Map<String, Object> map) throws Exception {		
+    	return sellMapper.getCollMoneyList(map);		
+    }
+		
+	/**
+	 * 수금, 미수금 내역 추가 및 수정
+	 * @since 2018.04.13
+	 * @author 이명선
+	 * @throws Exception 
+	 */
+	public Map<String, Object> setCollMoney(Map<String, Object> map) throws Exception {    		
+		Map<String, Object> rtnMap = new HashMap<String, Object>();
+		int iRst = 0;
+		iRst = sellMapper.getCollMoneyCnt(map);
+		if(iRst == 0){
+			iRst = sellMapper.setInsCollMoney(map);
+		} else {
+			iRst = sellMapper.setUpdCollMoney(map);
+		}
+		rtnMap.put("rtn", iRst);
+    	return rtnMap;
+    }
+	
+	/**
+	 * 수금, 미수금 내역 삭제
+	 * @since 2018.04.13
+	 * @author 이명선
+	 * @throws Exception 
+	 */
+	public Map<String, Object> delCollMoney(Map<String, Object> map) throws Exception {  
+		Map<String, Object> rtnMap = new HashMap<String, Object>();
+		int iRst =  sellMapper.delCollMoney(map);
+		rtnMap.put("rtn", iRst);
+    	return rtnMap;
+    }
 }

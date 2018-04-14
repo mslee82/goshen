@@ -208,4 +208,60 @@
 		   AND cust_no = #{cust_no}
 		   AND sell_seq = #{sell_seq}
     </delete>
+    
+    
+    <select id="getCollMoneyList" parameterType="hashmap" resultType="hashmap">
+		SELECT DATE_FORMAT(a.reg_dt,'%Y-%m-%d') reg_dt
+				, a.cust_no
+				, CASE WHEN b.branch_nm IS NULL OR b.branch_nm = '' THEN b.cust_nm
+					   ELSE CONCAT(b.cust_nm, '-', IFNULL(b.branch_nm,'')) 
+				   END cust_nm 
+				, a.reg_type
+				, CASE WHEN a.reg_type = '1' THEN '미수금'
+					   WHEN a.reg_type = '2' THEN '수금'
+					   ELSE a.reg_type
+				   END reg_type_nm
+				, a.amt
+		  FROM coll_money a, customer b
+		 WHERE a.cust_no = b.cust_no
+		   AND DATE_FORMAT(a.reg_dt,'%Y%m') = DATE_FORMAT(#{reg_dt},'%Y%m')
+		   AND a.cust_no = #{cust_no}
+    </select>
+    
+    <select id="getCollMoneyCnt" parameterType="hashmap" resultType="int">
+		SELECT COUNT(*) cnt
+		  FROM coll_money
+		 WHERE reg_dt = DATE_FORMAT(#{reg_dt},'%Y%m%d')
+		   AND cust_no = #{cust_no}
+		   AND reg_type = #{reg_type}
+    </select>
+    
+    <insert id="setInsCollMoney" parameterType="hashmap">
+		INSERT INTO coll_money (reg_dt
+							, cust_no
+							, reg_type
+							, amt
+						) 
+				VALUES
+						( DATE_FORMAT(#{reg_dt},'%Y%m%d')
+							, #{cust_no}
+							, #{reg_type}
+							, #{amt}
+						)
+    </insert>
+    
+    <update id="setUpdCollMoney" parameterType="hashmap">
+		UPDATE coll_money 
+		   SET amt = #{amt}			   		
+		 WHERE reg_dt = DATE_FORMAT(#{reg_dt},'%Y%m%d')
+		   AND cust_no = #{cust_no}
+		   AND reg_type = #{reg_type}
+    </update>
+    
+    <delete id="delCollMoney" parameterType="hashmap">
+		DELETE FROM coll_money 			   		
+	     WHERE reg_dt = DATE_FORMAT(#{reg_dt},'%Y%m%d')
+		   AND cust_no = #{cust_no}
+		   AND reg_type = #{reg_type}
+    </delete>
 </mapper>

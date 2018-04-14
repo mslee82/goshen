@@ -16,4 +16,5 @@ public interface ReceiptMapper {
 	public int setProductPriceEndDt(Map<String, Object> map) throws Exception;
 	public int setUpdProductPrice(Map<String, Object> map) throws Exception;
 	public Map<String, Object> getProductPriceInfo(Map<String, Object> map) throws Exception;
+	public Map<String, Object> getCollMoneyType2Amt(Map<String, Object> map) throws Exception;
 }

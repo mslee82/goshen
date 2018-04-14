@@ -58,24 +58,6 @@ public class SellController {
 	}
 	
 	/**
-	 * 발주서 업로드해 sell table에  insert
-	 * @since 2017.10.22
-	 * @author 이명선
-	 * @throws Exception 
-	 */
-	/*@ResponseBody
-    @RequestMapping(value = "/sell/sellUploadExe.do", method = RequestMethod.POST)
-	public ModelAndView sellUploadExe(MultipartHttpServletRequest request)  throws Exception{		
-        MultipartFile excelFile = request.getFile("excel");
-       
-        sellService.setSellForExcelUpload(excelFile);   
-
-        ModelAndView mav = new ModelAndView();
-        mav.setViewName("sellList");
-        return mav;
-    }*/
-
-	/**
 	 * 판매 입력폼을 이용한 수정 및 등록
 	 * @since 2017.12.17
 	 * @author 이명선
@@ -186,6 +168,62 @@ public class SellController {
 	public ModelAndView delSellList(@RequestParam Map<String, Object> pMap) throws Exception {
 		ModelAndView mav = new ModelAndView("jsonView");
 		Map<String, Object> rtnMap = sellService.delSellList(pMap);
+		
+		mav.addObject("result", rtnMap); 
+		return mav;
+	}
+	
+	
+	/**
+	 * 수금관리 화면을 return
+	 * @since 2018.04.13
+	 * @author 이명선
+	 * @throws Exception 
+	 */
+	@RequestMapping(value = "/sell/collMoneyListPage.do")
+	public String collMoneyListPage(@RequestParam Map<String, Object> pMap) {
+		return "collMoneyList";
+	}
+	
+	/**
+	 * 수금 미수금 목록 조회
+	 * @since 2018.04.13
+	 * @author 이명선
+	 * @throws Exception 
+	 */
+	@RequestMapping(value = "/sell/collMoneyList.do")
+	public ModelAndView getCollMoneyList(@RequestParam Map<String, Object> pMap) throws Exception {
+		ModelAndView mav = new ModelAndView("jsonView");
+		List<HashMap<String, Object>> collMoneyList = sellService.getCollMoneyList(pMap);
+		mav.addObject("list", collMoneyList); 
+		return mav;
+	}
+	
+	/**
+	 * 수금 미수금 저장 및 수정
+	 * @since 2018.04.13
+	 * @author 이명선
+	 * @throws Exception 
+	 */
+	@RequestMapping(value = "/sell/setCollMoney.do")
+	public ModelAndView setCollMoney(@RequestParam Map<String, Object> pMap) throws Exception {
+		ModelAndView mav = new ModelAndView("jsonView");
+		Map<String, Object> rtnMap = sellService.setCollMoney(pMap);
+		
+		mav.addObject("result", rtnMap); 
+		return mav;
+	}
+	
+	/**
+	 * 수금 미수금 삭제
+	 * @since 2018.04.13
+	 * @author 이명선
+	 * @throws Exception 
+	 */
+	@RequestMapping(value = "/sell/delCollMoney.do")
+	public ModelAndView delCollMoney(@RequestParam Map<String, Object> pMap) throws Exception {
+		ModelAndView mav = new ModelAndView("jsonView");
+		Map<String, Object> rtnMap = sellService.delCollMoney(pMap);
 		
 		mav.addObject("result", rtnMap); 
 		return mav;

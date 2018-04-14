@@ -38,7 +38,7 @@ public class CustomerController {
 	public ModelAndView customerRegPage(@RequestParam Map<String, Object> pMap) {
 		ModelAndView mav = new ModelAndView();
 		mav.addObject("reg_mode", "I");
-		mav.setViewName("customerRegPage");
+		mav.setViewName("customerRegMod");
 		return mav;
 	}
 	
@@ -49,18 +49,16 @@ public class CustomerController {
 	 * @throws Exception 
 	 */
 	@RequestMapping(value = "/customer/customerModPage.do")
-	public ModelAndView productModPage(@RequestParam Map<String, Object> pMap) throws Exception {
+	public ModelAndView customerModPage(@RequestParam Map<String, Object> pMap) throws Exception {
 		ModelAndView mav = new ModelAndView();
-		mav.addObject("sell_dt", pMap.get("sell_dt"));
 		mav.addObject("cust_no", pMap.get("cust_no"));
-		mav.addObject("sell_seq", pMap.get("sell_seq"));
 		mav.addObject("reg_mode", "U");
-		mav.setViewName("customerRegPage");
+		mav.setViewName("customerRegMod");
 		return mav;
 	}
 	
 	/**
-	 * 상품 상세 정보 조회
+	 * 고객 정보 조회
 	 * @since 2017.12.31
 	 * @author 이명선
 	 * @throws Exception 
@@ -69,23 +67,21 @@ public class CustomerController {
 	public ModelAndView getCustomerInfo(@RequestParam Map<String, Object> pMap) throws Exception {
 		ModelAndView mav = new ModelAndView("jsonView");
 		Map<String, Object> rtnMap = customerService.getCustomerInfo(pMap);
-		mav.addObject("customerInfo", rtnMap); 
+		mav.addObject("custInfo", rtnMap); 
 		return mav;
 	}
 	
 	/**
-	 * 상품 입력폼을 이용한 수정 및 등록
+	 * 고객 입력폼을 이용한 수정 및 등록
 	 * @since 2017.12.31
 	 * @author 이명선
 	 * @throws Exception 
 	 */
-	@ResponseBody
     @RequestMapping(value = "/customer/setCustomer.do")
 	public ModelAndView setCustomer(@RequestParam Map<String, Object> pMap)  throws Exception{		
-		ModelAndView mav = new ModelAndView();
-		customerService.setCustomerForForm(pMap);   
-
-        mav.setViewName("customerList");
+		ModelAndView mav = new ModelAndView("jsonView");
+		Map<String, Object> rtnMap = customerService.setCustomerForForm(pMap);   
+		mav.addObject("result", rtnMap); 
         return mav;
     }
 	
@@ -101,7 +97,7 @@ public class CustomerController {
 	}
 	
 	/**
-	 * 상품 내역 조회
+	 * 고객 목록 조회
 	 * @since 2017.12.31
 	 * @author 이명선
 	 * @throws Exception 
@@ -113,4 +109,21 @@ public class CustomerController {
 		mav.addObject("list", customerList); 
 		return mav;
 	}
+	
+	/**
+	 * 고객 삭제
+	 * @since 2018.04.14
+	 * @author 이명선
+	 * @throws Exception 
+	 */
+	@ResponseBody
+    @RequestMapping(value = "/customer/delCustomer.do")
+	public ModelAndView delCustomer(@RequestParam Map<String, Object> pMap)  throws Exception{		
+		ModelAndView mav = new ModelAndView("jsonView");
+		Map<String, Object> rtnMap = customerService.delCustomer(pMap);   
+
+		mav.addObject("result", rtnMap); 
+        return mav;
+    }
+	
 }

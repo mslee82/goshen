@@ -53,7 +53,7 @@
 							  		 ON d.prod_no = g.prod_no
 						, (SELECT @rownum:=0) TMP
 				 WHERE a.cust_no = #{cust_no}
-				   AND a.sell_dt BETWEEN DATE_FORMAT(#{fromSellDt},'%Y%m%d') AND DATE_FORMAT(#{toSellDt},'%Y%m%d')  
+				   AND a.sell_dt = DATE_FORMAT(#{fromSellDt},'%Y%m%d')  
 			<choose>
 				<when test="sellType != null and sellType == 'exclude'">
 				   /*미입 교환 제외 교환은 무조건 작업표에만 포함시킴*/
@@ -126,7 +126,7 @@
 							  		 ON d.prod_no = h.prod_no		     		
 						, (SELECT @rownum:=0) TMP
 				 WHERE a.cust_no = #{cust_no}
-				   AND f.return_dt BETWEEN DATE_FORMAT(#{fromSellDt},'%Y%m%d') AND DATE_FORMAT(#{toSellDt},'%Y%m%d')
+				   AND f.return_dt = DATE_FORMAT(#{fromSellDt},'%Y%m%d')
 			   <if test="sReceiptLv != null and sReceiptLv != '' ">
 					<if test="sReceiptLv eq '1'.toString()">
 					AND d.tax_yn = 'Y'
@@ -170,7 +170,7 @@
 				  			    ON b.receipt_lv >= c.receipt_lv	/* 영수증 발행 레벨 */
 				  			  JOIN product d
 				  			    ON a.prod_no = d.prod_no
-				 WHERE a.sell_dt BETWEEN DATE_FORMAT(#{fromSellDt},'%Y%m%d') AND DATE_FORMAT(#{toSellDt},'%Y%m%d')  
+				 WHERE a.sell_dt = DATE_FORMAT(#{fromSellDt},'%Y%m%d')  
 				<if test="sMainStoreYn != null and sMainStoreYn eq 'N'.toString()">
 				   AND a.cust_no = #{cust_no}
 				</if>
@@ -201,7 +201,7 @@
 					     	   AND a.sell_dt = f.sell_dt
 					     	   AND a.sell_seq = f.sell_seq				     		
 				 WHERE a.cust_no = #{cust_no}
-				   AND f.return_dt BETWEEN DATE_FORMAT(#{fromSellDt},'%Y%m%d') AND DATE_FORMAT(#{toSellDt},'%Y%m%d')
+				   AND f.return_dt = DATE_FORMAT(#{fromSellDt},'%Y%m%d')
 				<if test="sMainStoreYn != null and sMainStoreYn eq 'N'.toString()">
 				   AND a.cust_no = #{cust_no}
 				</if>
@@ -237,7 +237,7 @@
 				  			  ) c
 				  			  JOIN product d
 				  			    ON a.prod_no = d.prod_no
-				 WHERE a.sell_dt BETWEEN DATE_FORMAT(#{fromSellDt},'%Y%m%d') AND DATE_FORMAT(#{toSellDt},'%Y%m%d')  
+				 WHERE a.sell_dt = DATE_FORMAT(#{fromSellDt},'%Y%m%d')  
 				<if test="sMainStoreYn != null and sMainStoreYn eq 'N'.toString()">
 				   AND a.cust_no = #{cust_no}
 				</if>
@@ -274,7 +274,7 @@
 					     	   AND a.sell_dt = f.sell_dt
 					     	   AND a.sell_seq = f.sell_seq				     		
 				 WHERE a.cust_no = #{cust_no}
-				   AND f.return_dt BETWEEN DATE_FORMAT(#{fromSellDt},'%Y%m%d') AND DATE_FORMAT(#{toSellDt},'%Y%m%d')
+				   AND f.return_dt = DATE_FORMAT(#{fromSellDt},'%Y%m%d')
 				<if test="sMainStoreYn != null and sMainStoreYn eq 'N'.toString()">
 				   AND a.cust_no = #{cust_no}
 				</if>
@@ -286,6 +286,8 @@
     </select>    
     
     <select id="getSellTotalPrice" parameterType="hashmap" resultType="hashmap">
+    SELECT SUM(total_price) total_price
+  	  FROM(	
     	SELECT DATE_FORMAT(k.sell_dt + 1, '%Y%m%d') sell_dt
     			, SUM(price) total_price
     	  FROM (
@@ -321,7 +323,7 @@
 							        AND a.unit = f.unit
 								    AND a.sell_dt BETWEEN f.start_dt AND f.end_dt
 				 WHERE a.cust_no = #{cust_no}
-				   AND a.sell_dt = DATE_FORMAT(DATE_ADD(DATE_FORMAT(#{fromSellDt},'%Y%m%d'), INTERVAL -1 DAY), '%Y%m%d') 
+				   AND a.sell_dt BETWEEN DATE_FORMAT(CONCAT(DATE_FORMAT(#{fromSellDt},'%Y%m'),'01'), '%Y%m%d') AND DATE_FORMAT(DATE_ADD(DATE_FORMAT(#{fromSellDt},'%Y%m%d'), INTERVAL -1 DAY), '%Y%m%d') 
 				 UNION
 				 /* 반품내역 */
 				 SELECT f.return_dt AS sell_dt
@@ -359,16 +361,24 @@
 							        AND a.unit = g.unit
 								    AND a.sell_dt BETWEEN g.start_dt AND g.end_dt		     		
 				 WHERE a.cust_no = #{cust_no}
-				   AND f.return_dt = DATE_FORMAT(DATE_ADD(DATE_FORMAT(#{fromSellDt},'%Y%m%d'), INTERVAL -1 DAY), '%Y%m%d') 
+				   AND f.return_dt BETWEEN DATE_FORMAT(CONCAT(DATE_FORMAT(#{fromSellDt},'%Y%m'),'01'), '%Y%m%d') AND DATE_FORMAT(DATE_ADD(DATE_FORMAT(#{fromSellDt},'%Y%m%d'), INTERVAL -1 DAY), '%Y%m%d') 
 			) k
 		GROUP BY k.sell_dt, k.branch_nm
+		UNION ALL
+		SELECT DATE_FORMAT(CONCAT(DATE_FORMAT(#{fromSellDt},'%Y%m'),'01'), '%Y%m%d') reg_dt
+				, SUM(amt) amt
+		  FROM coll_money
+		 WHERE cust_no = #{cust_no}
+		   AND reg_type = '1'
+		   AND reg_dt BETWEEN DATE_FORMAT(CONCAT(DATE_FORMAT(#{fromSellDt},'%Y%m'),'01'), '%Y%m%d') AND DATE_FORMAT(#{fromSellDt},'%Y%m%d')
+	) A
     </select>
     
     <select id="getCheckSellType" parameterType="hashmap" resultType="hashmap">
 		SELECT COUNT(*) cnt 
 		  FROM sell a
 		 WHERE a.cust_no = #{cust_no}
-		   AND a.sell_dt BETWEEN DATE_FORMAT(#{fromSellDt},'%Y%m%d') AND DATE_FORMAT(#{toSellDt},'%Y%m%d')
+		   AND a.sell_dt = DATE_FORMAT(#{fromSellDt},'%Y%m%d') 
 		   AND a.sell_type = 'N'  			
     </select>
     
@@ -432,4 +442,13 @@
 		   AND unit = (SELECT unit FROM unit WHERE unit_nm = #{unit_nm})
 		   AND end_dt = '99991231'
 	</select>
+	
+	<select id="getCollMoneyType2Amt" parameterType="hashmap" resultType="hashmap">
+		SELECT reg_dt
+				, (amt * -1) amt
+		  FROM coll_money
+		 WHERE cust_no = #{cust_no}
+		   AND reg_type = '2'
+		   AND reg_dt = DATE_FORMAT(#{fromSellDt},'%Y%m%d')		
+    </select>
 </mapper>

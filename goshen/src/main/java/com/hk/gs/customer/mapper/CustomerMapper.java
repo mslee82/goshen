@@ -11,4 +11,5 @@ public interface CustomerMapper {
 	public int setUpdCustomerForForm(Map<String, Object> map) throws Exception;
 	public Map<String, Object> getCustomerInfo(Map<String, Object> map) throws Exception;	
 	public List<HashMap<String, Object>> getCustomerList(Map<String, Object> map) throws Exception;
+	public int delCustomer(Map<String, Object> map) throws Exception;
 }

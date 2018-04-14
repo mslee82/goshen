@@ -43,7 +43,8 @@ public class CustomerService {
 	 * @author 이명선
 	 * @throws Exception 
 	 */
-	public int setCustomerForForm(Map<String, Object> map) throws Exception {    		
+	public Map<String, Object> setCustomerForForm(Map<String, Object> map) throws Exception {    		
+		Map<String, Object> rtnMap = new HashMap<String, Object>();
 		int iRst = 0;
 		//merge 사용불가. sell_seq 때문에 duplicate 발생 안함.
 		//수정 혹은 등록
@@ -52,7 +53,8 @@ public class CustomerService {
 		} else {
 			iRst = customerMapper.setUpdCustomerForForm(map);
 		}
-    	return iRst;
+		rtnMap.put("rtn", iRst);
+    	return rtnMap;
     }
 	
 	/**
@@ -63,5 +65,18 @@ public class CustomerService {
 	 */
 	public List<HashMap<String, Object>> getCustomerList(Map<String, Object> map) throws Exception {		
     	return customerMapper.getCustomerList(map);		
+    }
+	
+	/**
+	 * 고객 삭제
+	 * @since 2017.12.31
+	 * @author 이명선
+	 * @throws Exception 
+	 */
+	public Map<String, Object> delCustomer(Map<String, Object> map) throws Exception {    		
+		Map<String, Object> rtnMap = new HashMap<String, Object>();
+		int iRst = customerMapper.delCustomer(map);
+		rtnMap.put("rtn", iRst);
+    	return rtnMap;
     }
 }
