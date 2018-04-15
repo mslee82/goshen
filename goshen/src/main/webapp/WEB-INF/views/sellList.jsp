@@ -149,18 +149,33 @@
 			var arrChecked = [];
 			var vJsonParam = "";
 			var chkCnt = 0;
-			
+			var vReqChkCnt = 0;
 			//선택된 반품 항목을 array에 담아 전달
 			$(".block_list table tbody .active").each(function (i) {			
 				vJsonParam = { "sell_dt" : this.children.listSellDt.textContent
 						  		, "cust_no" : this.children.listSellCustNo.textContent
 						  		, "sell_seq" : this.children.listSellSeq.textContent
 						  		, "return_quan" : this.children.listSellQuan.children.returnQuan.value
-				}				
+				}	
+				 
+				if(this.children.listSellQuan.children.returnQuan.value == ""){
+					vReqChkCnt ++;
+				}
 				arrChecked.push(vJsonParam);
 				chkCnt++;
 			});
 			
+			if(chkCnt == 0){
+				vReqChkCnt ++;
+				alert("반품 내역을 선택하세요");
+				return;
+			}
+			
+			if(vReqChkCnt > 0){
+				vReqChkCnt ++;
+				alert("반품 수량을 입력하세요");
+				return;
+			}
 			//전달된 파라미터는 CommUtil.json2List 기능을 통해 List Object로 전환해서 사용한다. 
 			var vJsonString = arrChecked;
 			

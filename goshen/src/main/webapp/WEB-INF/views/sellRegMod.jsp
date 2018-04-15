@@ -69,11 +69,7 @@
 			var vUnitVal = $('#unitList option').filter(function() {
 				return this.value == vUnit;
 			}).data('value');
-			
-			var vTruckNo = $('#truckNo').val();
-			var vTruckNoVal = $('#truckList option').filter(function() {
-				return this.value == vTruckNo;
-			}).data('value');
+					
 			
 			if(vCustNo == ""){
 				if(typeof vCustNoVal == "undefined" || null == vCustNoVal){
@@ -90,18 +86,13 @@
 					vUnitVal = "";
 				} 				
 			}
-			if(vTruckNo == ""){
-				if(typeof vTruckNoVal == "undefined" || null == vTruckNoVal){
-					vTruckNoVal = "";
-				} 				
-			}
+
 			commonSubmit.setUrl("<c:url value='/sell/setSell.do' />");
 			commonSubmit.addParam("sell_dt"		, gfn_nvl($("#sellDt").val()));			//판매일자
 			commonSubmit.addParam("cust_no"		, vCustNoVal);							//고객번호
 			commonSubmit.addParam("prod_no"		, vProdVal);							//상품
 			commonSubmit.addParam("sell_quan"	, gfn_nvl($("#sellQuan").val()));		//수량
 			commonSubmit.addParam("unit"		, vUnitVal);							//단위
-			commonSubmit.addParam("truck_no"	, vTruckNoVal);							//배차
 			commonSubmit.addParam("mode"		, $("#mode").val());					//입력 I, 수정 U
 			if("U" == $("#mode").val()){
 				commonSubmit.addParam("sell_seq", gfn_nvl($("#sellSeq").val()));		//단위
@@ -131,7 +122,6 @@
 			$("#sellDt").val(result.sellInfo.sell_dt);
 			$("#custNo").val($('#custList [data-value="'+result.sellInfo.cust_no+'"]').val());
 			$("#prodNo").val($('#prodList [data-value='+result.sellInfo.prod_no+']').val());
-			$("#truckNo").val($('#truckList [data-value='+result.sellInfo.truck_no+']').val());
 			$("#sellQuan").val(result.sellInfo.sell_quan);
 			$("#unit").val($('#unitList [data-value='+result.sellInfo.unit+']').val());
 			$("#sellSeq").val(result.sellInfo.sell_seq);
@@ -158,21 +148,15 @@
 				<tbody>
 					<tr class="detail_view">
 						<th class="list_th">판매일자</th>
-						<td class="list_td align-left">
+						<td class="list_td align-left date">
 							<input type="text" class="search_input" id="sellDt" readonly />
 						</td>
 						<th class="list_th">고객명</th>
-						<td class="list_td align-left">
+						<td class="list_td align-left" colspan="3">
 							<input type="text" id="custNo" list="custList" autocomplete="on" maxlength="50">
 							<datalist id="custList">
 						    </datalist>	
-						</td>
-						<th class="list_th">배차</th>
-						<td class="list_td align-left">
-							<input type="text" id="truckNo" list="truckList" autocomplete="on" maxlength="50">
-							<datalist id="truckList">
-						    </datalist>	
-						</td>
+						</td>						
 					</tr>
 					<tr class="detail_view">
 						<th class="list_th">상품</th>
