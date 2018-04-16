@@ -10,7 +10,6 @@ public interface SellMapper {
 	public int setSellForExcelUpload(Map<String, Object> map) throws Exception;
 	public int setInsSellForForm(Map<String, Object> map) throws Exception;
 	public int setUpdSellForForm(Map<String, Object> map) throws Exception;
-	public int setUpdSellForList(Map<String, Object> map) throws Exception;
 	public List<HashMap<String, Object>> getSellList(Map<String, Object> map) throws Exception;
 	public Map<String, Object> getSellInfo(Map<String, Object> map) throws Exception;	
 	public Map<String, Object> getSellUploadExePrev(Map<String, Object> map) throws Exception;

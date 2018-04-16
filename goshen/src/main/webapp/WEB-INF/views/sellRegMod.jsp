@@ -94,6 +94,9 @@
 			commonSubmit.addParam("sell_quan"	, gfn_nvl($("#sellQuan").val()));		//수량
 			commonSubmit.addParam("unit"		, vUnitVal);							//단위
 			commonSubmit.addParam("mode"		, $("#mode").val());					//입력 I, 수정 U
+			
+			commonSubmit.addParam("sell_type"	, $("#sellType").val());				//미입: N, 교환: E
+			commonSubmit.addParam("grp_type"	, $("#grpType").val());					//1: 작업표에서 *로 표현함
 			if("U" == $("#mode").val()){
 				commonSubmit.addParam("sell_seq", gfn_nvl($("#sellSeq").val()));		//단위
 			}
@@ -125,6 +128,8 @@
 			$("#sellQuan").val(result.sellInfo.sell_quan);
 			$("#unit").val($('#unitList [data-value='+result.sellInfo.unit+']').val());
 			$("#sellSeq").val(result.sellInfo.sell_seq);
+			$("#sellType").val(result.sellInfo.sell_type);
+			$("#grpType").val(result.sellInfo.grp_type);
 		}
 	</script>
 </head>
@@ -174,6 +179,23 @@
 							<input type="text" id="unit" list="unitList" autocomplete="on" maxlength="50">
 							<datalist id="unitList">
 							</datalist>
+						</td>
+					</tr>
+					<tr class="detail_view">
+						<th class="list_th">미입 & 교환</th>
+						<td class="list_td align-left">
+							<select id="sellType" style="width:120px;">
+								<option value="">정상판매</option>
+								<option value="N">미입</option>
+								<option value="E">교환</option>
+							</select>
+						</td>
+						<th class="list_th">작업표 *</th>
+						<td class="list_td align-left" colspan="3">
+							<select id="grpType" style="width:120px;">
+								<option value="">낱개</option>
+								<option value="1">곱하기</option>
+							</select>
 						</td>
 					</tr>
 				</tbody>

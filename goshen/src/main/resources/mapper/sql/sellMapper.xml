@@ -60,7 +60,7 @@
     	<selectKey keyProperty="maxSellSeq" resultType="integer" order="BEFORE">
 			SELECT IFNULL(MAX(seLl_seq), 0) + 1 
 			  FROM sell
-			 WHERE sell_dt = #{sell_dt}
+			 WHERE sell_dt = DATE_FORMAT(#{sell_dt},'%Y%m%d')
 		   	   AND cust_no = #{cust_no}
 		</selectKey>
 		INSERT INTO sell (sell_dt
@@ -69,6 +69,12 @@
 							, prod_no
 							, sell_quan
 							, unit
+							<if test="sell_type != null and sell_type != ''">
+							, sell_type
+							</if>
+							<if test="grp_type != null and grp_type != ''">
+							, grp_type
+							</if>
 						) 
 				VALUES
 						( DATE_FORMAT(#{sell_dt},'%Y%m%d')
@@ -77,6 +83,12 @@
 							, #{prod_no}
 							, #{sell_quan}
 							, #{unit}
+							<if test="sell_type != null and sell_type != ''">
+							, #{sell_type}
+							</if>
+							<if test="grp_type != null and grp_type != ''">
+							, #{grp_type}
+							</if>
 						)
     </insert>
     
@@ -84,18 +96,14 @@
 		UPDATE sell 
 		   SET prod_no = #{prod_no}
 			   , sell_quan = #{sell_quan}
-			   , unit = #{unit}				   		
+			   , unit = #{unit}		
+			   <if test="sell_type != null and sell_type != ''">
+			   , sell_type = #{sell_type}
+			   </if>
+			   <if test="grp_type != null and grp_type != ''">
+			   , grp_type = #{grp_type}
+			   </if>		   		
 		 WHERE sell_dt = DATE_FORMAT(#{sell_dt},'%Y%m%d')
-		   AND cust_no = #{cust_no}
-		   AND sell_seq = #{sell_seq}
-    </update>
-    
-    <update id="setUpdSellForList" parameterType="hashmap">
-		UPDATE sell 
-		   SET prod_no = (SELECT prod_no FROM product WHERE prod_nm = #{prod_nm})
-			   , sell_quan = #{sell_quan}
-			   , unit = (SELECT unit FROM unit WHERE unit_nm = #{unit_nm} OR unit_al = #{unit_nm})				   		
-		 WHERE sell_dt = #{sell_dt}
 		   AND cust_no = #{cust_no}
 		   AND sell_seq = #{sell_seq}
     </update>
@@ -113,13 +121,13 @@
 				, a.unit
 				, e.unit_nm
 				, d.tax_yn
-				, CASE WHEN d.tax_yn = 'N' THEN CAST(TRUNCATE(a.sell_quan * IFNULL(b.prod_price, g.prod_price), 2) AS double)
+				, CASE WHEN d.tax_yn = 'N' THEN CAST(TRUNCATE(IFNULL(b.prod_price, g.prod_price), 2) AS double)
 							   ELSE NULL
 						   END tax_free /*면세*/
-				, CASE WHEN d.tax_yn = 'Y' THEN CAST(TRUNCATE( (a.sell_quan * IFNULL(b.prod_price, g.prod_price)) / 1.1, 2) AS double)
+				, CASE WHEN d.tax_yn = 'Y' THEN CAST(TRUNCATE( (IFNULL(b.prod_price, g.prod_price)) / 1.1, 2) AS double)
 					   ELSE NULL
 				   END supply /*공급가액*/
-				, CASE WHEN d.tax_yn = 'Y' THEN CAST(TRUNCATE(( (a.sell_quan * IFNULL(b.prod_price, g.prod_price)) / 1.1) /10, 2) AS double)
+				, CASE WHEN d.tax_yn = 'Y' THEN CAST(TRUNCATE(( (IFNULL(b.prod_price, g.prod_price)) / 1.1) /10, 2) AS double)
 					   ELSE NULL
 				   END tax /*부가세*/
 				, TRUNCATE(a.sell_quan * IFNULL(b.prod_price, g.prod_price), 2) total_price /*계*/
@@ -162,7 +170,9 @@
 			   , sell_seq
 			   , prod_no
 			   , unit
-			   , sell_quan			   
+			   , sell_quan
+			   , sell_type		
+			   , grp_type	   
 		  FROM sell
 		 WHERE sell_dt = DATE_FORMAT(#{sell_dt},'%Y%m%d')	
 		   AND cust_no = #{cust_no}
