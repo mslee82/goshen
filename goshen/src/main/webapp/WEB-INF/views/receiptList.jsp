@@ -143,7 +143,8 @@
 				dataList += '<td name="listProdTyp"><select name="prodTyp"><option value="A"'+vSelectedA+'>야채</option><option value="B"'+vSelectedB+'>공산품</option><option value="C"'+vSelectedC+'>수산</option><option value="D"'+vSelectedD+'>고기</option></select></td>';
 				dataList += '<td name="listSellCustNo" style="display:none">' + gfn_nvl(val.cust_no) + '</td>';		//고객번호		
 				dataList += '<td name="listReturnSeq" style="display:none">' + gfn_nvl(val.return_seq) + '</td>';	//반품일련번호
-				dataList += '<td name="listProdSeq" style="display:none">' + gfn_nvl(val.prod_seq) + '</td>';		//상품일련번호		
+				dataList += '<td name="listProdSeq" style="display:none">' + gfn_nvl(val.prod_seq) + '</td>';		//상품일련번호
+				dataList += '<td name="listSellSeq" style="display:none">' + gfn_nvl(val.sell_seq) + '</td>';		//판매일련번호
 				dataList += '</tr>';
 				
 				$("#board_list tbody").append(dataList);
@@ -160,9 +161,22 @@
 			var arrChecked = [];
 			var vJsonParam = "";
 			var chkCnt = 0;
-
+			var vUnit = "";
+			var vUnitVal = "";
+			var vProd = "";
+			var vProdVal = "";
 			//목록을 array에 담아 전달
 			$(".block_list table tbody .active").each(function (i) {
+				vUnit = this.children.listUnitNm.children.unitNm.value;
+				vUnitVal = $('#unitList option').filter(function() {
+					return this.value == vUnit;
+				}).data('value');
+				
+				vProd = this.children.listProdNm.children.prodNm.value;
+				vProdVal = $('#prodList option').filter(function() {
+					return this.value == vProd;
+				}).data('value');
+				
 				vJsonParam = { "sell_dt" : this.children.listSellDt.textContent							//판매일자
 								, "cust_nm" : this.children.listCustNm.textContent	
 								, "cust_no" : this.children.listSellCustNo.textContent					//고객명
@@ -174,6 +188,9 @@
 						  		, "tax_yn" : this.children.listTaxYn.children.taxYn.value				//과세여부
 						  		, "prod_typ" : this.children.listProdTyp.children.prodTyp.value			//종류
 						  		, "branch_nm" : this.children.listBranchNm.textContent					//지점
+						  		, "sell_seq" : this.children.listSellSeq.textContent					//판매일련번호
+						  		, "prod_no" : vProdVal													//상품번호
+						  		, "unit" : vUnitVal														//단위
 				}				
 				arrChecked.push(vJsonParam);
 				chkCnt++;
@@ -191,7 +208,7 @@
 		}
 		
 		function fnSellSaveCallback(response){
-			alert("등록 완료");
+			alert("수정 완료");
 		} 
 		
 		/**

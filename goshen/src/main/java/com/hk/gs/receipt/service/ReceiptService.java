@@ -121,6 +121,10 @@ public class ReceiptService {
 			paramMap.put("sell_quan", tempMap.get("sell_quan"));
 			paramMap.put("return_seq", tempMap.get("return_seq"));
 			
+			paramMap.put("sell_seq", tempMap.get("sell_seq"));
+			paramMap.put("prod_no", tempMap.get("prod_no"));
+			paramMap.put("unit", tempMap.get("unit"));
+			
     		//상품 등록여부 조회
     		iProdCnt = sellMapper.getProductInfo(paramMap);
     		
@@ -131,6 +135,10 @@ public class ReceiptService {
     			//있으면 과세여부, 상품종류 수정
     			sellMapper.setProductInfoForList(paramMap);
     		}
+    		
+    		//sell 정보 변경함. 미입고로 인한 삭제는 판매 메뉴에 가서 하세요!
+    		sellMapper.setUpdSellForForm(paramMap);
+    		
     		sInputPrice = paramMap.get("prod_price").toString();
     		
     		//단가 처리
