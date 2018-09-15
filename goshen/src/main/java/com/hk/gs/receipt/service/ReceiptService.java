@@ -107,7 +107,7 @@ public class ReceiptService {
 		for (int i = 0; i < jsonData.size(); i++) {
 			tempMap = jsonData.get(i);
 			sellist.add(tempMap);
-			
+			 
 			paramMap.put("prod_nm", tempMap.get("prod_nm"));
 			paramMap.put("unit_nm", tempMap.get("unit_nm"));
 			paramMap.put("prod_typ", tempMap.get("prod_typ"));

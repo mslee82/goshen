@@ -145,7 +145,7 @@
 				dataList += '<td name="listReturnSeq" style="display:none">' + gfn_nvl(val.return_seq) + '</td>';	//반품일련번호
 				dataList += '<td name="listProdSeq" style="display:none">' + gfn_nvl(val.prod_seq) + '</td>';		//상품일련번호
 				dataList += '<td name="listSellSeq" style="display:none">' + gfn_nvl(val.sell_seq) + '</td>';		//판매일련번호
-				dataList += '</tr>';
+				dataList += '</tr>'; 
 				
 				$("#board_list tbody").append(dataList);
 			});

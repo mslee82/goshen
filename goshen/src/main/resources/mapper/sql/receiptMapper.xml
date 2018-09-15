@@ -34,7 +34,7 @@
 						, '' AS gb /*반품구분*/
 						, '' AS return_date
 						, IFNULL(g.ord, 9999) AS ord
-						, a.sell_seq
+						, a.sell_seq 
 						, d.prod_no
 				  FROM sell a LEFT JOIN product_price  b
 									 ON a.cust_no = b.cust_no
