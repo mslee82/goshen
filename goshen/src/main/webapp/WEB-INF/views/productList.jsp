@@ -32,8 +32,11 @@
 			
 			//그리드 선택
 			$(document).on("click", "#board_list > tbody > tr > td", function(event){
-				if (event.target.type == 'checkbox') return;
 				var params = $(this).parents("tr");		
+				if (event.target.type == 'checkbox'){
+					$(params).find("input[type=checkbox]").prop("checked", false);
+					return;
+				}
 				if($(params).find("input[type='checkbox']").is(":checked")){
 					$(params).removeClass('active');
 					$(params).find("input[type=checkbox]").prop("checked", false);					

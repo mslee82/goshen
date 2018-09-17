@@ -29,7 +29,9 @@
 						, CASE WHEN d.tax_yn = 'Y' THEN CAST(TRUNCATE(( (a.sell_quan * IFNULL(b.prod_price, f.prod_price)) / 1.1) /10, 2) AS double)
 							   ELSE NULL
 						   END tax /*부가세*/
-						, (a.sell_quan * IFNULL(b.prod_price, f.prod_price)) AS total_price /*계*/
+						, CASE WHEN d.tax_yn = 'Y' THEN (a.sell_quan * IFNULL(b.prod_price, f.prod_price))
+							   ELSE NULL
+						   END total_price /*계*/
 						, d.prod_typ
 						, '' AS gb /*반품구분*/
 						, '' AS return_date
@@ -100,7 +102,9 @@
 						, CASE WHEN d.tax_yn = 'Y' THEN CAST(TRUNCATE(((f.return_quan * IFNULL(b.prod_price, g.prod_price)) / 1.1) /10, 2) * -1 AS double)
 							   ELSE NULL
 						   END tax /*부가세*/
-						, (f.return_quan * IFNULL(b.prod_price, g.prod_price)) * -1	AS total_price /*계*/
+						, CASE WHEN d.tax_yn = 'Y' THEN (f.return_quan * IFNULL(b.prod_price, g.prod_price)) * -1
+							   ELSE NULL
+						   END total_price /*계*/
 						, d.prod_typ
 						, 'R' AS gb /*반품구분*/
 						, f.sell_dt AS return_date

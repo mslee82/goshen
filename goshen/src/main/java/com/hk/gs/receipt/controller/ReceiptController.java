@@ -161,9 +161,8 @@ public class ReceiptController {
 				dSumTaxFree += receiptList.get(idx2).get("tax_free") != null ? Double.parseDouble(receiptList.get(idx2).get("tax_free").toString()) : 0;
 				dSumSupply += receiptList.get(idx2).get("supply") != null ? Double.parseDouble(receiptList.get(idx2).get("supply").toString()) : 0;
 				dSumTax += receiptList.get(idx2).get("tax") != null ? Double.parseDouble(receiptList.get(idx2).get("tax").toString()) : 0;
-				dSumSubTotal += dSumSupply + dSumTax;				 
 			}
-			
+			dSumSubTotal = dSumSupply + dSumTax;
 			dSumTotal = dSumTaxFree + dSumSubTotal;
 			
 			receiptMap.put("sumtaxfree", dSumTaxFree > 0 ? dSumTaxFree : "");		//¸é¼¼
