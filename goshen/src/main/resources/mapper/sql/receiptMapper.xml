@@ -163,6 +163,7 @@
     	SELECT k.*
     	  FROM (
 				SELECT DISTINCT DATE_FORMAT(a.sell_dt,'%Y-%m-%d') dt_list
+						, DATE_FORMAT(a.sell_dt,'%Y년%m월%d일') ymd_list
 						, c.company_nm
 						, c.account
 						, c.bank_nm
@@ -189,6 +190,7 @@
 				 UNION
 				 /* 반품내역 */
 				 SELECT DISTINCT DATE_FORMAT(f.return_dt,'%Y-%m-%d') dt_list
+				 		, DATE_FORMAT(f.return_dt,'%Y년%m월%d일') ymd_list
 						, c.company_nm
 						, c.account
 						, c.bank_nm
@@ -224,6 +226,7 @@
     	SELECT k.*
     	  FROM (
 				SELECT DISTINCT DATE_FORMAT(a.sell_dt,'%Y-%m-%d') dt_list
+						, DATE_FORMAT(a.sell_dt,'%Y년%m월%d일') ymd_list
 						, c.company_nm
 						, c.account
 						, c.bank_nm
@@ -256,6 +259,7 @@
 				 UNION
 				 /* 반품내역 */
 				 SELECT DISTINCT DATE_FORMAT(f.return_dt,'%Y-%m-%d') dt_list
+				 		, DATE_FORMAT(f.return_dt,'%Y년%m월%d일') ymd_list
 						, c.company_nm
 						, c.account
 						, c.bank_nm

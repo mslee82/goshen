@@ -183,6 +183,7 @@ public class ReceiptController {
 			}
 			
 			receiptMap.put("dt_list"	, tmpList.get(idx).get("dt_list"));
+			receiptMap.put("ymd_list"	, tmpList.get(idx).get("ymd_list"));
 			receiptMap.put("account"	, tmpList.get(idx).get("account"));
 			receiptMap.put("bank_nm"	, tmpList.get(idx).get("bank_nm"));
 			
