@@ -452,7 +452,7 @@
 						</choose>
 		   AND prod_no = (SELECT prod_no FROM product WHERE prod_nm = #{prod_nm})
 		   AND unit = (SELECT unit FROM unit WHERE unit_nm = #{unit_nm})
-		   AND end_dt = '99991231'
+		   AND end_dt = '99991231'		  
 	</select>
 	
 	<select id="getCollMoneyType2Amt" parameterType="hashmap" resultType="hashmap">
@@ -463,4 +463,81 @@
 		   AND reg_type = '2'
 		   AND reg_dt = DATE_FORMAT(#{fromSellDt},'%Y%m%d')		
     </select>
+    
+    <select id="getMaxPriceStartDt" parameterType="hashmap" resultType="String">
+		SELECT MAX(start_dt) start_dt 
+		  FROM product_price a
+		 WHERE a.cust_no = #{cust_no}
+		   AND a.prod_no = (SELECT prod_no FROM product WHERE prod_nm = #{prod_nm})
+		   AND a.unit = (SELECT unit FROM unit WHERE unit_nm = #{unit_nm})
+    </select>
+    
+    <select id="getProductPriceDate" parameterType="hashmap" resultType="hashmap">
+		SELECT cust_no
+			   , prod_no
+			   , prod_seq
+			   , unit
+			   , start_dt
+			   , end_dt
+			   , prod_price
+			   , DATEDIFF(end_dt, start_dt) df_dt
+		  FROM product_price
+		 WHERE cust_no = 
+		 				<choose>
+							<when test="branch_nm != null and branch_nm != ''">
+						   		 (SELECT cust_no FROM customer WHERE (cust_nm = #{cust_nm} OR cust_al = #{cust_nm}) AND branch_nm = #{branch_nm})		  
+						 	</when>
+						 	<otherwise>
+								 (SELECT cust_no FROM customer WHERE (cust_nm = #{cust_nm} OR cust_al = #{cust_nm}) AND (branch_nm IS NULL OR branch_nm = '') )
+						 	</otherwise>
+						</choose>
+		   AND prod_no = (SELECT prod_no FROM product WHERE prod_nm = #{prod_nm})
+		   AND unit = (SELECT unit FROM unit WHERE unit_nm = #{unit_nm})
+		   AND #{sell_dt} BETWEEN start_dt AND end_dt		  
+	</select>
+	
+	<update id="setProductPriceStartDt" parameterType="hashmap">	
+		UPDATE product_price
+		   SET start_dt = DATE_FORMAT(DATE_ADD(#{sell_dt}, INTERVAL -1 DAY),'%Y%m%d')
+		 WHERE cust_no = #{cust_no}
+		   AND prod_no = #{prod_no}
+		   AND prod_seq = #{prod_seq}
+		   AND unit = #{unit}
+	</update>
+	
+	<insert id="setProductPriceDate" parameterType="hashmap">
+		<selectKey keyProperty="maxProdSeq" resultType="integer" order="BEFORE">
+			SELECT IFNULL(MAX(prod_seq), 0) + 1 
+			  FROM product_price
+			 WHERE cust_no = #{cust_no}
+			   AND prod_no = #{prod_no}
+			   AND unit = #{unit}
+		</selectKey>
+		INSERT INTO product_price ( cust_no
+									, prod_no
+									, prod_seq
+									, unit
+									, prod_price
+									, start_dt
+									, end_dt
+									) 
+				VALUES
+						( #{cust_no}
+						, #{prod_no}
+						, #{maxProdSeq}
+						, #{unit}
+						, #{prod_price}
+						, #{start_dt}
+						, #{end_dt}
+						)
+    </insert>
+
+	<update id="setProductPriceEndDtStartDt" parameterType="hashmap">	
+		UPDATE product_price
+		   SET end_dt = start_dt
+		 WHERE cust_no = #{cust_no}
+		   AND prod_no = #{prod_no}
+		   AND prod_seq = #{prod_seq}
+		   AND unit = #{unit}
+	</update>
 </mapper>
